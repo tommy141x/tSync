@@ -1,7 +1,7 @@
 ---
 slug: "tsync"
 name: "tSync"
-displayName: "Tommy's Light Sync"
+displayName: "Tommy's Lights Sync"
 tagline: "Patrol cars that flash together, on whatever non-ELS lighting you already run"
 category: "fivem"
 tags: ["standalone"]
@@ -15,9 +15,17 @@ popularity: 10
 resourceName: "tSync"
 docsUrl: "/docs/tSync"
 provider: "tebex"
-# ⚠️ UNLISTED, AND NOT YET PUBLISHED ANYWHERE. tSync has never been released,
-# so unlike tChirp there is no existing audience and nothing to keep working.
-# Publishing is the owner's call and there are two things open:
+# PUBLISHED 2026-10-25 on the owner's instruction, against Tebex package
+# 5347030 "Tommy's Lights Sync" — verified free on the live Headless
+# storefront: base_price 0, total_price 0, category "Free Resources" (2437651).
+#
+# `displayName` matches the TEBEX package name rather than reading better in
+# English. "Tommy's Light Sync" is the nicer phrase; "Lights" is what a buyer
+# sees at checkout, and a store page that disagrees with the checkout it links
+# to is the kind of small wrongness that gets reported as a scam. Change both
+# or neither.
+#
+# Both preconditions are closed:
 #
 #  1. Store art is in place as of 2026-10-25 — this item is closed, kept as
 #     the record. The hero is a real in-game capture of three liveried units
@@ -28,7 +36,7 @@ provider: "tebex"
 #     A pass was watched on a live client: 1,012 frames polled, the siren flag
 #     caught false on exactly one of them, 2 ms past a 5000 ms boundary of the
 #     shared clock. See the note in client/cl_sync.lua.
-status: "unlisted"
+status: "published"
 media:
   - { type: "image", src: "/assets/tSync/thumb.jpg", alt: "Three patrol units with their light bars in step" }
   - { type: "image", src: "/assets/tSync/banner.jpg", alt: "tSync" }
@@ -36,10 +44,11 @@ media:
 # not whichever entry happens to sort first.
 coverImage: "/assets/tSync/thumb.jpg"
 pricing:
-  # `amount: 0` with NO `packageId`, which is tDB's pairing rather than
-  # tChirp's. tChirp has a package because it was sold before its overhaul and
-  # seven people own it. tSync has never been sold, so there is no package to
-  # zero and nothing to resolve a stored product id against.
+  # `amount: 0` WITH a `packageId`, which is tChirp's pairing rather than tDB's.
+  # tSync is free — MIT, no escrow, source in the download — but it HAS a Tebex
+  # package, so free is a PRICE and 0 is how it is stated. 5347030 is read off
+  # the live Headless API, where it already reads 0; this line does not set the
+  # price, it states it, and the two have to agree.
   #
   # There is no `keymasterAsset` and there must not be one. Nothing here is
   # escrowed, so nothing is granted, and a Keymaster line would send a buyer
@@ -49,6 +58,7 @@ pricing:
     label: "Free and open source — MIT licensed, full source in the download, nothing escrowed."
     amount: 0
     currency: "usd"
+    packageId: "5347030"
 ---
 
 GTA runs every emergency vehicle's light pattern off a timer that starts when its siren comes on. Two cars that lit up a second apart flash a second apart for as long as they are lit, and nothing in the game ever pulls them together. It is the detail that makes a line of patrol cars look like a line of separate patrol cars.
