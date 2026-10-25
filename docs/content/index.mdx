@@ -1,0 +1,49 @@
+---
+title: "tSync"
+description: "Emergency light sync for non-ELS FiveM vehicles. Restarts GTA's own light timers together so patrol cars parked side by side flash as one."
+order: 0
+group: "tSync"
+---
+
+GTA runs every vehicle's light pattern off a timer that starts when its siren
+comes on. Two cars that lit up a second apart flash a second apart for as long
+as they are lit, and nothing in the game ever pulls them together.
+
+tSync restarts those timers together.
+
+<Callout type="info" title="This is for non-ELS lighting">
+  tSync works by restarting GTA's own light timer, so it only affects vehicles
+  that GTA is lighting — vanilla, [Luxart Vehicle
+  Control](https://github.com/TrevorBarns/luxart-vehicle-control), Ultimate
+  Lighting Controller, and the rest of the non-ELS world. A script that draws
+  its own lights has no engine timer behind them to restart.
+</Callout>
+
+## What it does
+
+- Re-times vehicles **whose lights are already on**, within range of each player
+- Leaves vehicles another lighting script owns alone
+- Needs no configuration to work
+
+## What it does not do
+
+- Switch lights on, or off
+- Change a pattern, a colour, or a flash rate
+- Replace a lighting controller — it has no UI, no keybinds and no patterns
+
+## Requirements
+
+| | |
+| --- | --- |
+| tLib | **v1.0+**, free — [download](https://github.com/tommy141x/tLib/releases) |
+| Framework | None, and none is needed |
+| Database | None |
+| OneSync | Not required |
+
+## Cost
+
+One pass every `intervalMs` on each client, walking the vehicles within
+`radius`. There is no server component and no network traffic at all — see
+[How it works](/docs/tSync/usage#how-it-works).
+
+MIT licensed. Nothing here is escrow-packed.

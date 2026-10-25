@@ -1,0 +1,101 @@
+---
+title: "Configuration"
+description: "All four options in tSync's config.lua with types, defaults and bounds: interval, radius, vehicle classes, and deferring to another lighting script."
+order: 2
+group: "tSync"
+---
+
+Everything is in `config.lua`. Edit the file, restart the resource. tSync runs
+with zero edits.
+
+Nothing is read again while the server runs, and your file is never rewritten.
+A mistyped key is reported at boot with the key, the file and the fix.
+
+## Config.intervalMs
+
+**number, default `5000`, minimum `250`**
+
+How long two vehicles may drift apart before being pulled back together.
+
+This is a **ceiling on drift, not a refresh rate.** Nothing is redrawn between
+passes — lights run on GTA's own timer the whole time, and this is only how
+often those timers are restarted together.
+
+Lower is tighter and costs more: each pass walks the vehicles within `radius`.
+Below about a second the reset itself starts to be visible as a stutter in the
+pattern, which is a worse artefact than the drift it is removing.
+
+There is no maximum. A very large value is not a mistake — it is "sync rarely",
+which is a reasonable choice on a server whose fleet mostly sits parked.
+
+## Config.radius
+
+**number, default `150.0`, range `1.0`–`500.0`**
+
+Metres. Vehicles further away than this are left alone.
+
+This is a rendering fix, so the only vehicles that matter are the ones on
+screen. The default is a little past where light bars stop being legible, which
+costs a few extra vehicles per pass and means a car does not visibly snap into
+step as you drive up to it.
+
+The `500` ceiling is a guard against a typo'd extra zero, not a tuning opinion:
+past it the vehicles being walked are not rendered at all, so the work is
+certain waste.
+
+## Config.vehicleClasses
+
+**table, default `{ 18 }`**
+
+GTA vehicle class numbers. **18 is Emergency** — every police car, ambulance
+and fire truck in the base game, and what almost every emergency vehicle mod
+sets itself to.
+
+```lua
+Config.vehicleClasses = { 18, 19 }  -- also Military
+```
+
+The full list is in the [FiveM native
+reference](https://docs.fivem.net/natives/?_0x29439776AAA00A62).
+
+Write it as a plain list. `Config.vehicleClasses = 18` is the mistake that
+actually happens, and it is rejected at boot rather than silently matching
+nothing. So is a class outside the 0–22 GTA defines, and an empty list.
+
+A vehicle still has to have its lights **on** to be touched. tSync never
+switches anything on; it only re-times what is already running.
+
+## Config.deferToTLS
+
+**boolean, default `true`**
+
+Skip vehicles that another lighting script is driving.
+
+tSync restarts GTA's light timer, so a script that **draws** its own lights is
+unaffected by the trick either way. The reason to skip those vehicles is
+different: such a script may still be using the siren flag for its **audio**,
+and restarting that flag can clip the siren.
+
+Today this means [tLS](https://timmygstudios.com/software/tls). The check costs
+one export call per candidate vehicle per pass and is skipped outright when no
+such resource is running, so there is nothing to turn off for performance.
+
+<Callout type="info" title="Both resource names are probed">
+  tLS was renamed from `tELS` on 2026-10-24. tSync probes `tLS` first and falls
+  back to `tELS`, so a server that has not renamed its folder still gets the
+  deference.
+</Callout>
+
+Set it to `false` only if you want tSync to re-phase those vehicles too.
+
+## What is deliberately not configurable
+
+**Whether to sync your own vehicle.** There is no reason to exclude it, and a
+driver whose own lights are the one set out of step with everyone else's would
+reasonably call that the bug.
+
+**A per-player toggle.** tSync has no visible UI and nothing to opt out of — it
+makes lights agree with each other. If you do not want it, stop the resource.
+
+**A speed or parked-only gate.** Lights drift while driving in convoy exactly
+as they do parked, and a convoy is where it is most visible.

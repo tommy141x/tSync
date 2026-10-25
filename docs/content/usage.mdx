@@ -1,0 +1,99 @@
+---
+title: "Usage"
+description: "What tSync touches and what it refuses, the tsync_diag readout, and why there is no server component or network traffic."
+order: 3
+group: "tSync"
+---
+
+There is nothing to operate. tSync has no UI, no keybinds and no commands other
+than a diagnostic. Once it is running it keeps lights in step.
+
+## What gets re-phased
+
+A vehicle is re-phased when **all four** are true:
+
+1. Its lights are already on
+2. Its class is in `Config.vehicleClasses` — `18` by default
+3. It is within `Config.radius` of you
+4. No other lighting script claims it (see `Config.deferToTLS`)
+
+Fail any one and it is left completely alone.
+
+## tsync_diag
+
+Run it in the client console (F8). It reports what **this** client resolved,
+which is where the work happens.
+
+```
+tSync 1.0.0 — tLib 1.0.0
+every 5000 ms, within 150 m, classes 18
+deferring to: tLS
+last pass re-phased 2 vehicle(s), 1.4 s ago
+```
+
+The `deferring to:` line reports the **resolved** answer, not the config flag.
+`deferToTLS = true` with nothing running and `deferToTLS = false` behave
+identically, and reading back the flag you set tells you nothing about which
+you are in — so it names the resource it found, or says `nothing running`.
+
+The command also re-runs the configuration checks, so a problem introduced by an
+edit shows up here without restarting and watching the boot lines scroll past.
+
+## How it works
+
+Two things make tSync smaller than it looks.
+
+### The reset is per-observer
+
+Toggling a vehicle's siren flag restarts GTA's light timer for that vehicle **on
+the client that does it** — including vehicles that client does not own. So the
+fix is applied to what you are looking at, not negotiated with anyone.
+
+That is why there is no ownership check, and no case where a vehicle cannot be
+synced because somebody else is driving it.
+
+### The clock is already shared
+
+Every client has `GetNetworkTimeAccurate()`, a millisecond clock the engine
+keeps synchronised. tSync does not pick its own moment to re-phase — it waits
+for the next multiple of `intervalMs` on that clock.
+
+Because every client is reading the same clock, every client reaches that
+instant together without being told to. The result:
+
+- **No net events.** Nothing to send, nothing to receive, nothing to forge.
+- **No server component** to the sync at all. The only server file is the
+  update check.
+- **No dependence on latency.** A player on a 300 ms connection re-phases at the
+  same instant as one on 20 ms, because neither is waiting for a message.
+
+<Callout type="info" title="Why not broadcast it">
+  Ultimate Lighting Controller does this same reset and then sends it to nearby
+  clients over the network. That is the natural design if you have not noticed
+  the clock is already shared — and once you have, the round trip buys nothing
+  except a dependency on ping.
+</Callout>
+
+### The frame gap
+
+Each pass drops the siren flag on **every** candidate, waits one frame, then
+raises them all.
+
+Both halves matter. Dropping and raising one vehicle at a time restarts each
+timer at a different instant, which is the drift itself. And writing both values
+in the same frame leaves the engine nothing to observe — it reads the flag once
+per tick and would see only the final value, so the reset would silently never
+happen.
+
+One frame of darkness at an interval measured in seconds is not visible. A sync
+that quietly does nothing is not detectable at all, which is the worse failure.
+
+## Interaction with other scripts
+
+| | |
+| --- | --- |
+| Luxart Vehicle Control | Works. LVC lets GTA draw the lights |
+| Ultimate Lighting Controller | Works, and ULC's own park-sync is redundant alongside it |
+| Vanilla / no lighting script | Works |
+| tLS | Skipped by default — tLS draws its own lights |
+| Any script that renders its own LEDs | Unaffected either way; there is no engine timer to restart |

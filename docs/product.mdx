@@ -1,0 +1,93 @@
+---
+slug: "tsync"
+name: "tSync"
+displayName: "Tommy's Light Sync"
+tagline: "Patrol cars that flash together, on whatever non-ELS lighting you already run"
+category: "fivem"
+tags: ["standalone"]
+# NOT "Escrow". tSync's fxmanifest.lua carries no `escrow_ignore` and says why:
+# on a resource that is never escrow-packed the block is not a smaller
+# carve-out, it is a claim about the build that is not true. The tree is
+# readable and MIT-licensed, same shape as tDB and tChirp.
+badge: "Free"
+updatedAt: "2026-10-25"
+popularity: 10
+resourceName: "tSync"
+docsUrl: "/docs/tSync"
+provider: "tebex"
+# ⚠️ UNLISTED, AND NOT YET PUBLISHED ANYWHERE. tSync has never been released,
+# so unlike tChirp there is no existing audience and nothing to keep working.
+# Publishing is the owner's call and there are two things open:
+#
+#  1. No store art. There is no `media` block below and no `coverImage`,
+#     deliberately — referencing `/assets/tSync/thumb.jpg` before it exists
+#     produces a listing with a broken tile, and a missing field degrades
+#     better than a broken link.
+#  2. Not verified in-game. The mechanism is corroborated by two shipped
+#     scripts and by the engine's tick model, but no pass has been watched
+#     running on a live client. See the note in client/cl_sync.lua.
+status: "unlisted"
+pricing:
+  # `amount: 0` with NO `packageId`, which is tDB's pairing rather than
+  # tChirp's. tChirp has a package because it was sold before its overhaul and
+  # seven people own it. tSync has never been sold, so there is no package to
+  # zero and nothing to resolve a stored product id against.
+  #
+  # There is no `keymasterAsset` and there must not be one. Nothing here is
+  # escrowed, so nothing is granted, and a Keymaster line would send a buyer
+  # hunting for something that was never granted.
+  - id: "tsync"
+    kind: "one-time"
+    label: "Free and open source — MIT licensed, full source in the download, nothing escrowed."
+    amount: 0
+    currency: "usd"
+---
+
+GTA runs every emergency vehicle's light pattern off a timer that starts when its siren comes on. Two cars that lit up a second apart flash a second apart for as long as they are lit, and nothing in the game ever pulls them together. It is the detail that makes a line of patrol cars look like a line of separate patrol cars.
+
+tSync restarts those timers together.
+
+<Stats
+  items={[
+    { value: "0", label: "net events — the sync sends nothing" },
+    { value: "4", label: "settings, none of them required" },
+    { value: "1", label: "dependency — tLib, and it's free" },
+    { value: "MIT", label: "licensed, full source in the download" },
+  ]}
+/>
+
+<Callout type="warning" title="This is for non-ELS lighting">
+  tSync works by restarting GTA's own light timer, so it only affects vehicles GTA is lighting — vanilla, Luxart Vehicle Control, Ultimate Lighting Controller, and the rest of the non-ELS world. A script that draws its own LEDs has no engine timer behind them to restart, and tSync will neither help it nor interfere with it.
+</Callout>
+
+## No server, and no network traffic
+
+This is the part that makes tSync small.
+
+The reset is **per-observer**: toggling a vehicle's siren flag restarts GTA's light timer for that vehicle on the client that does it, including vehicles that client does not own. So the fix is applied to what you are looking at, and there is no ownership to negotiate — no case where a car cannot be synced because somebody else is driving it.
+
+And the clock is already shared. Every client has `GetNetworkTimeAccurate()`, which the engine keeps synchronised. tSync does not choose its own moment to re-phase; it waits for the next multiple of the configured interval on that clock. Every client reaches that instant together **without being told to**.
+
+So there are no net events, no server component to the sync, and no dependence on latency. A player on a 300 ms connection re-phases at the same instant as one on 20 ms, because neither is waiting for a message.
+
+The obvious alternative — reset, then broadcast the reset to nearby clients — is what Ultimate Lighting Controller does. It is the natural design if you have not noticed the clock is already shared, and once you have, the round trip buys nothing except a dependency on ping.
+
+## What it will not do
+
+- It will not switch lights on, off, or change a pattern. It only re-times what is already running.
+- It is not a lighting controller. No UI, no keybinds, no patterns.
+- It cannot sync a script that renders its own LEDs. If you run [tLS](/software/tls), tSync stays out of its way by default.
+
+## Configuration
+
+Four settings, none of them required. Interval, radius, which vehicle classes, and whether to defer to another lighting script. Everything is in `config.lua`, commented in full, and validated at boot — a mistyped key is a line naming the key and the fix, not a setting that silently did nothing.
+
+## Requirements
+
+| Requirement | Detail |
+| ----------- | ------ |
+| tLib | **v1.0+**, free — [download](https://github.com/tommy141x/tLib/releases) |
+| Framework | None. There is no framework code in tSync, and none is needed |
+| Database | None |
+| OneSync | Not required |
+| Lua | 5.4, handled by the manifest |
