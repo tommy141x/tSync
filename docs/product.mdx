@@ -19,15 +19,22 @@ provider: "tebex"
 # so unlike tChirp there is no existing audience and nothing to keep working.
 # Publishing is the owner's call and there are two things open:
 #
-#  1. No store art. There is no `media` block below and no `coverImage`,
-#     deliberately — referencing `/assets/tSync/thumb.jpg` before it exists
-#     produces a listing with a broken tile, and a missing field degrades
-#     better than a broken link.
+#  1. Store art is in place as of 2026-10-25 — this item is closed, kept as
+#     the record. The hero is a real in-game capture of three liveried units
+#     with their bars lit IN STEP, which is the one thing the shot had to show:
+#     sync is a relationship between vehicles, so a single car would have been
+#     a hero for a different resource.
 #  2. Verified in-game 2026-10-25 -- this item is closed, kept as the record.
 #     A pass was watched on a live client: 1,012 frames polled, the siren flag
 #     caught false on exactly one of them, 2 ms past a 5000 ms boundary of the
 #     shared clock. See the note in client/cl_sync.lua.
 status: "unlisted"
+media:
+  - { type: "image", src: "/assets/tSync/thumb.jpg", alt: "Three patrol units with their light bars in step" }
+  - { type: "image", src: "/assets/tSync/banner.jpg", alt: "tSync" }
+# Explicit rather than left to `coverImage()`, so the store tile is the hero and
+# not whichever entry happens to sort first.
+coverImage: "/assets/tSync/thumb.jpg"
 pricing:
   # `amount: 0` with NO `packageId`, which is tDB's pairing rather than
   # tChirp's. tChirp has a package because it was sold before its overhaul and

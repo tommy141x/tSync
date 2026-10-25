@@ -37,9 +37,16 @@ point for a 2560×1440 source and will not be right for an arbitrary capture.
 The two store images in `assets/cfx/` (`01-hero.jpg`, `02-banner.jpg`) are the
 generated pair, exported at upload order for the Cfx forum post.
 
-## Why this is not already here
+## The current hero
 
-The in-game capture bridge on this machine returns sheared frames — the
-framebuffer read is misaligned at every resolution tried, which is a fault in
-the capture path rather than anything about the scene. A screenshot taken
-normally is the way to produce this.
+`tsync.webp`, 1930×1042 lossless — three liveried units on the shoulder with
+their bars lit in step. The cars sit at roughly x 700–1900 and y 320–780 of the
+source; the empty road on the left is what the banner's copy lands on, which is
+why that frames without a gap.
+
+The offsets in `LAYERS` are tuned for those numbers. A replacement shot with a
+different composition will need them re-tuned — render and look.
+
+Captured normally rather than through the in-game bridge: that path returns
+sheared frames on this machine at every resolution tried, with the scene fully
+stationary. A fault in the capture hook, not the scene.

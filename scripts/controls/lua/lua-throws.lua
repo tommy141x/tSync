@@ -11,6 +11,6 @@
 -- An error on the FIRST statement, not an assertion, because that is the shape
 -- that is dangerous: a suite that cannot even load has run zero of its own
 -- assertions, and a runner that reports it as a pass is reporting a suite that
--- never ran. All three of tChirp's suites load real product files at file scope,
+-- never ran. Both of tSync's suites load real product files at file scope,
 -- so that is their likeliest failure, not a false assertion.
 error('the Lua gate control: raised before any assertion ran', 0)

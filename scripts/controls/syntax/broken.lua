@@ -13,7 +13,7 @@
 --
 -- ⚠️ Do not "fix" this file. It is red on purpose. Deleting it does not make the
 -- gate pass — it makes the gate's control fail, which is the point.
-local function tchirpControlBrokenOnPurpose(a, b)
+local function tsyncControlBrokenOnPurpose(a, b)
     if a > b then
         return a
     -- no `end` for the `if`, and no `end` for the function

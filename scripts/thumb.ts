@@ -29,7 +29,7 @@ const HERO = path.join(REPO, "assets", "hero");
 const out = (name: string) => path.join(REPO, "docs", "public", name);
 
 const headline = cliArg("headline") ?? "tSync";
-const subtitle = cliArg("subtitle") ?? "Park-kill siren chirp reminder for FiveM";
+const subtitle = cliArg("subtitle") ?? "Emergency light sync for non-ELS vehicles";
 const only = cliArg("format");
 
 /**
@@ -58,20 +58,26 @@ const only = cliArg("format");
  */
 const LAYERS: { file: string; thumb: string; banner: string }[] = [
   {
-    // Two patrol cars, light bars lit and IN STEP -- the whole product in one
-    // frame. A single car cannot show this feature: sync is a relationship
-    // between vehicles, so a hero with one car in it is a hero for a different
-    // resource.
+    // Three liveried units on the shoulder with their bars lit IN STEP, which
+    // is the product in one frame. A single car cannot show this feature: sync
+    // is a relationship between vehicles.
     //
-    // Shoot it at dusk or night with the bars facing camera. The offsets below
-    // are a starting point for a roughly 2560x1440 capture and will need
-    // nudging to whatever lands here -- run `bun run thumb` and look.
-    file: "tsync.jpg",
-    thumb: `width: 3200px; left: -420px; top: 40px; border-radius: 0;
+    // Source is 1930x1042. The cars occupy roughly x 700-1900 and y 320-780 of
+    // it, so they sit centre-right and mid-height; the empty road on the left
+    // is what the banner's copy lands on.
+    file: "tsync.webp",
+    // 2400 wide (scale 1.24) rather than tChirp's 3200: the source is already
+    // nearly frame-width, and scaling it up that far pushed the cars entirely
+    // past the right edge. `left` brings them back across, `top` drops them
+    // clear of the headline.
+    thumb: `width: 2400px; left: -500px; top: 40px; border-radius: 0;
             filter: brightness(.52) saturate(.95) contrast(1.06);
             -webkit-mask-image: linear-gradient(to bottom, transparent 8%, rgba(0,0,0,.35) 26%, #000 44%);
             mask-image: linear-gradient(to bottom, transparent 8%, rgba(0,0,0,.35) 26%, #000 44%);`,
-    banner: `width: 1750px; left: 230px; top: -110px; border-radius: 0;
+    // The banner puts its copy down the left, so the cars are pushed RIGHT and
+    // the fade runs the other way. The empty road the shot already has on that
+    // side is why this frames without a gap.
+    banner: `width: 1750px; left: 150px; top: -200px; border-radius: 0;
              filter: brightness(.56) saturate(.95) contrast(1.06);
              -webkit-mask-image: linear-gradient(to right, transparent 2%, rgba(0,0,0,.3) 20%, #000 40%);
              mask-image: linear-gradient(to right, transparent 2%, rgba(0,0,0,.3) 20%, #000 40%);`,

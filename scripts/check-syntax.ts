@@ -4,8 +4,8 @@
  * ## Why `bun run test` is not this
  *
  * `bun test` never loads a line of Lua, and the fengari suites under
- * scripts/tests only load the files they are oracles for — cl_sirens.lua,
- * cl_chirp.lua, sv_chirp.lua and shared/config-spec.lua. config.lua itself is
+ * scripts/tests only load the files they are oracles for — client/cl_sync.lua
+ * and shared/config-spec.lua. config.lua itself is
  * read by one of them but is not a suite's subject, and nothing at all parses
  * the manifest-adjacent files. A missing `end` in anything uncovered first
  * surfaces as a resource that REFUSES TO START on a live server, which is the

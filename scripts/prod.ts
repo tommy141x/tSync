@@ -82,9 +82,9 @@ const INCLUDE = [
 // a ninth copy of a test of tLib. These are the measurements, reproducible by
 // redoing either edit:
 //
-//   · `client/cl_chirp.lua` removed from INCLUDE → exit 1,
+//   · `client/cl_sync.lua` removed from INCLUDE → exit 1,
 //     "fxmanifest.lua names 1 path(s) the release does not stage:
-//      client/cl_chirp.lua". So an unlisted runtime file cannot ship silently.
+//      client/cl_sync.lua". So an unlisted runtime file cannot ship silently.
 //   · a `data.json` planted at the root and added to INCLUDE → exit 1,
 //     R-DATA-FILE, 1 finding. So runtime state cannot reach the archive.
 assertManifestStaged(readFileSync(join(ROOT, "fxmanifest.lua"), "utf8"), INCLUDE);
