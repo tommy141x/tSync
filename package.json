@@ -1,0 +1,31 @@
+{
+  "name": "tsync",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "bun run secrets:install-hooks && bun install",
+    "secrets:check": "bun run ../tLib/scripts/secret-gate.ts",
+    "secrets:install-hooks": "bun run ../tLib/scripts/secret-gate.ts --install-hooks",
+    "secrets:check-hooks": "bun run ../tLib/scripts/secret-gate.ts --check-hooks",
+    "prod": "bun run scripts/prod.ts",
+    "test": "bun run test:lua",
+    "test:lua": "bun run scripts/test-lua.ts",
+    "test:lua:control": "LUA_CONTROL=1 bun run scripts/test-lua.ts",
+    "check:syntax": "bun run scripts/check-syntax.ts",
+    "check:syntax:control": "SYNTAX_CONTROL=1 bun run scripts/check-syntax.ts",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "verify": "bun run secrets:check && bun run test:lua:control && bun run check:syntax:control && bun run lint && bun run check:syntax && bun run test && bun run prod"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.3",
+    "@types/adm-zip": "^0.6.0",
+    "@types/bun": "^1.4.3",
+    "adm-zip": "^0.6.1"
+  }
+}
