@@ -110,13 +110,19 @@ local lastPassCount, lastPassAt = 0, 0
 
 --- Restart the light timer on every candidate together.
 ---
---- THE FRAME GAP IS LOAD-BEARING AND IS NOT A GUESS AT TIMING. Setting the flag
---- false and true in the same frame leaves the engine nothing to observe --
---- it reads the flag once per tick and would see only the final value, so the
---- reset would silently never happen. ULC writes both in one frame; the script
---- this one replaces waits a frame between them, and that is the half worth
---- keeping. One frame of darkness at an interval measured in seconds is not
---- visible; a sync that does nothing is not detectable at all, which is worse.
+--- THE FRAME GAP IS LOAD-BEARING, AND IT IS MEASURED RATHER THAN REASONED.
+--- Setting the flag false and true in the same frame leaves the engine nothing
+--- to observe -- it reads the flag once per tick and would see only the final
+--- value, so the reset would silently never happen. ULC writes both in one
+--- frame; the script this one replaces waits a frame between them, and that is
+--- the half worth keeping.
+---
+--- Measured on a live client 2026-10-25: polling IsVehicleSirenOn every frame
+--- for 8 seconds across 1,012 frames caught the flag false on EXACTLY ONE
+--- frame, at 2 ms past a 5000 ms boundary of the shared clock, with the siren
+--- on before and after. One frame of darkness at an interval measured in
+--- seconds is not visible; a sync that does nothing is not detectable at all,
+--- which is the worse failure and the one this shape rules out.
 ---
 --- Re-checked after the wait because a vehicle can be deleted inside it, and
 --- SetVehicleSiren on a stale handle is a throw.

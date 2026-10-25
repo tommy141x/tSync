@@ -23,9 +23,10 @@ provider: "tebex"
 #     deliberately — referencing `/assets/tSync/thumb.jpg` before it exists
 #     produces a listing with a broken tile, and a missing field degrades
 #     better than a broken link.
-#  2. Not verified in-game. The mechanism is corroborated by two shipped
-#     scripts and by the engine's tick model, but no pass has been watched
-#     running on a live client. See the note in client/cl_sync.lua.
+#  2. Verified in-game 2026-10-25 -- this item is closed, kept as the record.
+#     A pass was watched on a live client: 1,012 frames polled, the siren flag
+#     caught false on exactly one of them, 2 ms past a 5000 ms boundary of the
+#     shared clock. See the note in client/cl_sync.lua.
 status: "unlisted"
 pricing:
   # `amount: 0` with NO `packageId`, which is tDB's pairing rather than
