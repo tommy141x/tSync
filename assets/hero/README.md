@@ -8,7 +8,7 @@ hero.
 ## What the shot has to be
 
 **Two patrol cars, light bars lit and in step.** That is the whole constraint,
-and it is not an aesthetic preference: sync is a relationship *between*
+and it is not an aesthetic preference: sync is a relationship _between_
 vehicles, so a hero with one car in it is a hero for a different resource.
 
 - Both light bars facing camera, cars side by side or slightly staggered

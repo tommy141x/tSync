@@ -17,12 +17,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import AdmZip from "adm-zip";
 import {
-  mergeLicenceFiles,
   assertManifestStaged,
   checkStagedTree,
   createZip,
   failing,
   formatFindings,
+  mergeLicenceFiles,
   stageFiles,
   step,
 } from "../../tLib/shared/ts/build/index.ts";
@@ -97,13 +97,12 @@ step("Merging the licence and notices");
     root: ROOT,
     dist: DIST,
     name: "tSync",
-    sources: [
-      { title: "Licence (MIT)", file: "LICENSE" }
-    ],
+    sources: [{ title: "Licence (MIT)", file: "LICENSE" }],
   });
-  console.log(`  ${bundle.out} — ${bundle.sections.length} section(s), ${(bundle.bytes / 1024).toFixed(1)} KB`);
+  console.log(
+    `  ${bundle.out} — ${bundle.sections.length} section(s), ${(bundle.bytes / 1024).toFixed(1)} KB`
+  );
 }
-
 
 // MIT requires the notice in every copy, and the only thing putting it there is
 // the `"LICENSE"` line in the hand-maintained list above. `assertManifestStaged`

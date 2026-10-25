@@ -37,12 +37,12 @@ leave `Config.deferToTLS` on and tSync will stay out of its way.
 
 Everything lives in `config.lua`, which is commented in full. Four settings:
 
-| Key | Default | |
-| --- | --- | --- |
-| `intervalMs` | `5000` | how long two vehicles may drift before being pulled back together |
-| `radius` | `150.0` | metres; beyond this they are not legible anyway |
-| `vehicleClasses` | `{ 18 }` | 18 is Emergency. Add 19 for Military |
-| `deferToTLS` | `true` | skip vehicles another lighting script owns |
+| Key              | Default  |                                                                   |
+| ---------------- | -------- | ----------------------------------------------------------------- |
+| `intervalMs`     | `5000`   | how long two vehicles may drift before being pulled back together |
+| `radius`         | `150.0`  | metres; beyond this they are not legible anyway                   |
+| `vehicleClasses` | `{ 18 }` | 18 is Emergency. Add 19 for Military                              |
+| `deferToTLS`     | `true`   | skip vehicles another lighting script owns                        |
 
 Changes need a resource restart. A mistyped key is reported at boot, naming the
 key and the fix, and your file is never rewritten.

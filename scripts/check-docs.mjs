@@ -312,8 +312,7 @@ if (CONTROL && DEAD.size === 0) {
         `with the anchors still missing, killing \`page\` must hide exactly the ` +
         `${anchorLinks} cross-page one(s) and leave the ` +
         `${seen.heading.errors - anchorLinks} in-page one(s)`,
-      (r) =>
-        r.errors === seen.heading.errors - anchorLinks && r.exit === (r.errors > 0 ? 1 : 0),
+      (r) => r.errors === seen.heading.errors - anchorLinks && r.exit === (r.errors > 0 ? 1 : 0),
     ],
   ];
 
