@@ -13,9 +13,10 @@ than a diagnostic. Once it is running it keeps lights in step.
 A vehicle is re-phased when **all four** are true:
 
 1. Its lights are already on
-2. Its class is in `Config.vehicleClasses` — `18` by default
+2. Its spawn code is not blacklisted, and either the whitelist names it or
+   — with no whitelist — its class is in `Config.vehicleClasses`
 3. It is within `Config.radius` of you
-4. No other lighting script claims it (see `Config.deferToTLS`)
+4. No other lighting script claims it — always, and not configurable
 
 Fail any one and it is left completely alone.
 
@@ -31,10 +32,12 @@ deferring to: tLS
 last pass re-phased 2 vehicle(s), 1.4 s ago
 ```
 
-The `deferring to:` line reports the **resolved** answer, not the config flag.
-`deferToTLS = true` with nothing running and `deferToTLS = false` behave
-identically, and reading back the flag you set tells you nothing about which
-you are in — so it names the resource it found, or says `nothing running`.
+The `deferring to:` line reports the **resolved** answer — the resource it
+found, or `nothing running`. There is no flag to read back; deference is
+unconditional.
+
+The `spawn codes:` line counts your two lists, and says so when a non-empty
+whitelist is standing in for the class check.
 
 The command also re-runs the configuration checks, so a problem introduced by an
 edit shows up here without restarting and watching the boot lines scroll past.
@@ -95,5 +98,5 @@ that quietly does nothing is not detectable at all, which is the worse failure.
 | Luxart Vehicle Control | Works. LVC lets GTA draw the lights |
 | Ultimate Lighting Controller | Works, and ULC's own park-sync is redundant alongside it |
 | Vanilla / no lighting script | Works |
-| tLS | Skipped by default — tLS draws its own lights |
+| tLS | Always skipped — tLS draws its own lights |
 | Any script that renders its own LEDs | Unaffected either way; there is no engine timer to restart |

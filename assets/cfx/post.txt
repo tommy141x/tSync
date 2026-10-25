@@ -12,7 +12,7 @@ tSync restarts those timers together.
 
 ---
 
-**0** net events — the sync sends nothing · **4** config options, none of them required · **0** databases, NUI files and build steps
+**0** net events — the sync sends nothing · **5** config options, none of them required · **0** databases, NUI files and build steps
 
 ---
 
@@ -20,9 +20,9 @@ tSync restarts those timers together.
 
 - **Works with what you already run** — vanilla lights, Luxart Vehicle Control, Ultimate Lighting Controller, and the rest of the non-ELS world. tSync does not replace your lighting script, it re-times it
 - **Nothing to operate** — no keybind, no menu, no command an officer uses. There is one diagnostic and that is the whole surface
-- **Runs with zero edits** — all four options ship with a default, and a key you delete comes back as the value that shipped
+- **Runs with zero edits** — all five options ship with a default, and a key you delete comes back as the value that shipped
 - **No server component to the sync, and no network traffic** — see below, because this is the interesting part
-- **Stays out of the way** — a vehicle another lighting script is driving is skipped by default
+- **Stays out of the way** — a vehicle another lighting script is driving is skipped, automatically and with no setting to get wrong
 - **Free, and readable** — MIT licensed, every file in the download editable, no encrypted file and no escrow
 
 ---
@@ -62,7 +62,7 @@ Put together: no net events, no server component to the sync, and no dependence 
 
 ## Configuration
 
-Four settings in `config.lua`, commented in full: how often to re-phase, how far out to bother, which vehicle classes count, and whether to defer to another lighting script.
+Five settings in `config.lua`, commented in full: how often to re-phase, how far out to bother, which vehicle classes count, and a blacklist and whitelist by spawn code. Deferring to another lighting script is automatic and has no setting.
 
 Validated at boot — a mistyped key is a line naming the key, the file and the fix, not a setting that silently did nothing. Your file is never rewritten.
 

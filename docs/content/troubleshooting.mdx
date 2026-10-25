@@ -28,7 +28,7 @@ spawning two cars and standing back, you may be outside it.
 
 **Is something else claiming them?** If `deferring to:` names a resource, tSync
 is skipping vehicles that resource knows about. That is correct behaviour — see
-[Configuration](/docs/tSync/configuration#configdefertotls).
+[Configuration](/docs/tSync/configuration#deferring-to-another-lighting-script).
 
 ## Nothing syncs, and the count is not zero
 
@@ -58,10 +58,11 @@ Raise `intervalMs`. The default of `5000` is not visible on any hardware tested.
 The vehicle is using the siren flag for audio as well as lights, and the reset
 is interrupting it.
 
-If a lighting script owns the vehicle, leave `Config.deferToTLS = true` and make
-sure the diag line names it. If nothing claims the vehicle and the clipping is
-still unacceptable, raise `intervalMs` so it happens less often, or remove that
-vehicle's class from `Config.vehicleClasses`.
+If a lighting script owns the vehicle, check the diag line names it — deference
+is automatic, so a vehicle it does not name is one tSync could not detect. If
+nothing claims the vehicle and the clipping is still unacceptable, put that
+spawn code in `Config.vehicleBlacklist`, or raise `intervalMs` so it happens
+less often.
 
 ## Errors naming tLib
 

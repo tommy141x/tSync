@@ -51,7 +51,10 @@ tsyncConfigSpec = {
         -- Type only; the contents are checked in crossChecks below.
         vehicleClasses = { type = 'table' },
 
-        deferToTLS = { type = 'boolean', default = true },
+        -- Type only; the contents are checked in crossChecks below, where a
+        -- spawn code that is not a string can be named.
+        vehicleBlacklist = { type = 'table' },
+        vehicleWhitelist = { type = 'table' },
     },
 }
 
@@ -67,6 +70,48 @@ local function crossChecks(cfg)
     local problems = {}
     local function bad(message)
         problems[#problems + 1] = ('[%s] %s'):format(RESOURCE, message)
+    end
+
+    --- A spawn-code list: a plain array of non-empty strings.
+    ---
+    --- Checked rather than trusted because every way of getting it wrong is
+    --- silent. A number instead of a string hashes to a different value and
+    --- simply never matches; a map instead of a list is skipped by ipairs, so
+    --- half the entries do nothing; an empty string hashes to a real key that
+    --- no vehicle has.
+    local function checkSpawnList(value, key)
+        if type(value) ~= 'table' then return end
+        for index, name in pairs(value) do
+            if type(index) ~= 'number' then
+                bad(('Config.%s has a named key (%s).\n  Fix: write it as a plain list -- { "police3", "sheriff2" }.')
+                    :format(key, tostring(index)))
+            elseif type(name) ~= 'string' then
+                bad(('Config.%s contains %s, which is not a spawn code.\n  Fix: spawn codes are strings -- { "police3" }, not { police3 }.')
+                    :format(key, tostring(name)))
+            elseif name == '' then
+                bad(('Config.%s contains an empty string.\n  Fix: remove it, or write the spawn code.')
+                    :format(key))
+            end
+        end
+    end
+
+    checkSpawnList(cfg.vehicleBlacklist, 'vehicleBlacklist')
+    checkSpawnList(cfg.vehicleWhitelist, 'vehicleWhitelist')
+
+    -- A model in both lists is not resolved silently in favour of either. The
+    -- code answers "never sync" and says so here, because the alternative is an
+    -- owner who whitelisted a vehicle watching it not sync with no explanation.
+    if type(cfg.vehicleBlacklist) == 'table' and type(cfg.vehicleWhitelist) == 'table' then
+        local blocked = {}
+        for _, name in ipairs(cfg.vehicleBlacklist) do
+            if type(name) == 'string' then blocked[name:lower()] = true end
+        end
+        for _, name in ipairs(cfg.vehicleWhitelist) do
+            if type(name) == 'string' and blocked[name:lower()] then
+                bad(('"%s" is in BOTH Config.vehicleBlacklist and Config.vehicleWhitelist.\n  Fix: the blacklist wins, so this vehicle will never sync. Remove it from one list.')
+                    :format(name))
+            end
+        end
     end
 
     local classes = cfg.vehicleClasses

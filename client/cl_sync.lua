@@ -23,7 +23,7 @@
 -- Only vehicles lit by GTA's own system. That covers vanilla, Luxart, ULC and
 -- the rest of the non-ELS world -- but a script that DRAWS its own lights is
 -- untouched by the trick, because there is no engine timer behind them to
--- restart. Config.deferToTLS exists for that case, below.
+-- restart. Such a vehicle is skipped unconditionally; see lightingResource.
 
 if not tsyncConfigValid then return end
 
@@ -36,6 +36,38 @@ local math_floor = math.floor
 --- only shows up on the server with the biggest fleet.
 local wantedClass = {}
 for _, class in ipairs(Config.vehicleClasses) do wantedClass[class] = true end
+
+--- The spawn-code lists, hashed once at load.
+---
+--- Compared as MODEL HASHES rather than names: GetEntityModel already returns a
+--- hash, and hashing the configured names once here is both cheaper per vehicle
+--- and the only spelling-insensitive comparison available -- GetHashKey
+--- lowercases, so "Police3" and "police3" land on the same key without this
+--- file doing any case handling of its own.
+local blacklisted, whitelisted = {}, {}
+local hasWhitelist = false
+for _, name in ipairs(Config.vehicleBlacklist) do blacklisted[GetHashKey(name)] = true end
+for _, name in ipairs(Config.vehicleWhitelist) do
+    whitelisted[GetHashKey(name)] = true
+    hasWhitelist = true
+end
+
+--- Is this model one tSync should touch?
+---
+--- Blacklist first and unconditionally: it is the only answer that cannot be
+--- overridden, which is what makes it usable as the escape hatch for a model
+--- whose lights look wrong when re-timed.
+---
+--- A non-empty whitelist then REPLACES the class check rather than narrowing
+--- it. Naming a spawn code is more specific than naming a class, and the
+--- reason to reach for the list at all is usually a pack that did not ship as
+--- class 18 -- which an additional filter would make impossible to express.
+local function modelWanted(vehicle)
+    local model = GetEntityModel(vehicle)
+    if blacklisted[model] then return false end
+    if hasWhitelist then return whitelisted[model] == true end
+    return wantedClass[GetVehicleClass(vehicle)] == true
+end
 
 --- Server-synchronised milliseconds.
 ---
@@ -53,6 +85,12 @@ end
 
 --- Which sibling resource, if any, is driving its own lights right now.
 ---
+--- UNCONDITIONAL, AND THERE IS NO SETTING FOR IT. There is no state of the
+--- world in which an owner wants tSync re-timing a vehicle another script is
+--- lighting: the reset does not help (rendered LEDs have no engine timer behind
+--- them) and it can clip that script's siren audio, which shares the flag.
+--- A switch here would only ever have been a way to turn on a bug.
+---
 --- Resolved per pass rather than cached at boot: tLS can be started, stopped or
 --- restarted while tSync runs, and a name latched at boot would be wrong for the
 --- rest of the session in whichever direction it happened to be wrong.
@@ -62,7 +100,6 @@ end
 --- old folder name. tLS first so that a server running both -- an old copy left
 --- in place beside the new one -- is read from the one that is current.
 local function lightingResource()
-    if not Config.deferToTLS then return nil end
     if GetResourceState('tLS') == 'started' then return 'tLS' end
     if GetResourceState('tELS') == 'started' then return 'tELS' end
     return nil
@@ -94,7 +131,7 @@ local function candidates()
         -- Siren flag first: it is the cheapest of the three and rejects almost
         -- every vehicle in the pool on a normal server.
         if IsVehicleSirenOn(vehicle)
-            and wantedClass[GetVehicleClass(vehicle)]
+            and modelWanted(vehicle)
             and #(GetEntityCoords(vehicle) - here) <= radius
             and not managedElsewhere(resource, vehicle)
         then
@@ -191,11 +228,14 @@ tlib.diag.command({
         ctx.line('every %d ms, within %.0f m, classes %s',
             Config.intervalMs, Config.radius, table.concat(classes, ', '))
 
-        -- The resolved answer, not the config flag. `deferToTLS = true` with no
-        -- tLS running and `deferToTLS = false` behave identically, and an owner
-        -- reading back the flag they set learns nothing about which it is.
+        -- The resolved answer. There is no flag to read back any more, and the
+        -- useful fact was never the flag: it is WHICH resource is being
+        -- deferred to, or that none is running.
         local resource = lightingResource()
-        ctx.line('deferring to: %s', resource or (Config.deferToTLS and 'nothing running' or 'disabled'))
+        ctx.line('deferring to: %s', resource or 'nothing running')
+        ctx.line('spawn codes: %d blacklisted, %d whitelisted%s',
+            #Config.vehicleBlacklist, #Config.vehicleWhitelist,
+            #Config.vehicleWhitelist > 0 and ' (whitelist replaces the class check)' or '')
 
         if lastPassAt == 0 then
             ctx.line('no pass has run yet')

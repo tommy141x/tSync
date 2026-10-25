@@ -53,6 +53,13 @@ function IsVehicleSirenOn(v) return (world[v] or {}).siren == true end
 function GetVehicleClass(v) return (world[v] or {}).class or 0 end
 function DoesEntityExist(v) return (world[v] or {}).exists ~= false end
 
+-- LOWERCASES, because the real joaat does. That is the only property of the
+-- hash the selection code relies on -- it is what lets an owner write
+-- "Police3" in config.lua and have it match -- so a stub that preserved case
+-- would let a case regression pass here and fail in game.
+function GetHashKey(s) return 'hash:' .. tostring(s):lower() end
+function GetEntityModel(v) return GetHashKey((world[v] or {}).model or 'unknown') end
+
 -- Every SetVehicleSiren call in order, which is what the ordering check reads.
 local calls = {}
 function SetVehicleSiren(v, on) calls[#calls + 1] = { vehicle = v, on = on } end
@@ -100,7 +107,8 @@ Config = {
     intervalMs = 5000,
     radius = 150.0,
     vehicleClasses = { 18 },
-    deferToTLS = true,
+    vehicleBlacklist = {},
+    vehicleWhitelist = {},
 }
 tsyncConfigValid = true
 
@@ -137,7 +145,20 @@ local function addVehicle(handle, opts)
         coords = opts.coords or vec(0, 0, 0),
         managed = opts.managed,
         exists = opts.exists,
+        model = opts.model or 'police',
     }
+end
+
+--- Re-load cl_sync.lua with a different Config.
+---
+--- The spawn-code lists are hashed ONCE at load, which is the real behaviour --
+--- config.lua is read at boot and never again. So a test that mutates
+--- Config.vehicleBlacklist after the file is loaded is testing nothing, and
+--- the first version of these checks did exactly that and passed the blacklist
+--- case for the wrong reason. Reloading is what actually exercises them.
+local function reloadWith(overrides)
+    for key, value in pairs(overrides) do Config[key] = value end
+    dofile(path('client/cl_sync.lua'))
 end
 
 local function sirenCalls(vehicle)
@@ -224,16 +245,6 @@ do
             .. 'renamed its folder is the one most likely to be running both')
 end
 
-do
-    reset()
-    Config.deferToTLS = false
-    started['tLS'] = 'started'
-    addVehicle(10, { managed = true })
-    runUntilWait(2)
-    check(#sirenCalls(10) == 2, 'deferToTLS = false re-phases tLS vehicles too')
-    Config.deferToTLS = true
-end
-
 -- tLS not running at all: the export throws, and that must skip the check
 -- rather than take the pass down with it.
 do
@@ -265,6 +276,85 @@ do
         'a vehicle deleted during the frame gap is dropped and never raised, '
             .. 'rather than throwing on a stale handle')
     check(#sirenCalls(10) == 2, 'its neighbour is unaffected')
+end
+
+-- ── Spawn-code lists ──────────────────────────────────────────────────────
+--
+-- Every rule here fails SILENTLY in game: a blacklisted model that still syncs,
+-- or a whitelisted one that does not, produces no error anywhere. The
+-- whitelist's interaction with vehicleClasses is the part most likely to be
+-- "simplified" later, so it is asserted in both directions.
+
+do
+    reset()
+    reloadWith({ vehicleBlacklist = { 'firetruk' } })
+    addVehicle(10, { model = 'police' })
+    addVehicle(11, { model = 'firetruk' })
+    runUntilWait(2)
+    check(#sirenCalls(10) == 2, 'a model not on the blacklist still syncs')
+    check(#sirenCalls(11) == 0, 'a blacklisted model is never re-phased')
+    reloadWith({ vehicleBlacklist = {} })
+end
+
+do
+    reset()
+    reloadWith({ vehicleBlacklist = { 'FireTruk' } })
+    addVehicle(10, { model = 'firetruk' })
+    runUntilWait(2)
+    check(#sirenCalls(10) == 0,
+        'spawn codes match case-insensitively -- the hash lowercases, so an '
+            .. 'owner writing "FireTruk" is not silently ignored')
+    reloadWith({ vehicleBlacklist = {} })
+end
+
+do
+    reset()
+    reloadWith({ vehicleWhitelist = { 'police3' } })
+    addVehicle(10, { model = 'police3' })
+    addVehicle(11, { model = 'police' })      -- class 18, but not listed
+    runUntilWait(2)
+    check(#sirenCalls(10) == 2, 'a whitelisted model syncs')
+    check(#sirenCalls(11) == 0,
+        'a non-whitelisted model does NOT sync even though its class matches -- '
+            .. 'a non-empty whitelist replaces the class check')
+    reloadWith({ vehicleWhitelist = {} })
+end
+
+-- The case the whitelist exists for: a pack that did not ship as class 18.
+-- An "extra filter on top of the classes" reading would make this impossible
+-- to express, which is why the replacement semantic is the one implemented.
+do
+    reset()
+    reloadWith({ vehicleWhitelist = { 'customcruiser' } })
+    addVehicle(10, { model = 'customcruiser', class = 0 })
+    runUntilWait(2)
+    check(#sirenCalls(10) == 2,
+        'a whitelisted model syncs regardless of its class')
+    reloadWith({ vehicleWhitelist = {} })
+end
+
+-- Blacklist wins. config-spec.lua reports the overlap at boot rather than
+-- resolving it quietly, and this pins which way the code resolves it.
+do
+    reset()
+    reloadWith({ vehicleBlacklist = { 'police3' }, vehicleWhitelist = { 'police3' } })
+    addVehicle(10, { model = 'police3' })
+    runUntilWait(2)
+    check(#sirenCalls(10) == 0, 'in both lists means never synced')
+    reloadWith({ vehicleBlacklist = {}, vehicleWhitelist = {} })
+end
+
+-- ── Deference is unconditional ────────────────────────────────────────────
+--
+-- There is no setting for it any more. Pinned because the obvious "add a flag
+-- back" change would reintroduce a switch whose only effect is to let tSync
+-- fight a script that owns the vehicle.
+do
+    reset()
+    started['tLS'] = 'started'
+    addVehicle(10, { managed = true })
+    runUntilWait(2)
+    check(#sirenCalls(10) == 0, 'a tLS vehicle is skipped with no config involved')
 end
 
 -- ── The shared clock decides when ──────────────────────────────────────────

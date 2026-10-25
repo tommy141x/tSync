@@ -1,6 +1,6 @@
 ---
 title: "Configuration"
-description: "All four options in tSync's config.lua with types, defaults and bounds: interval, radius, vehicle classes, and deferring to another lighting script."
+description: "All five options in tSync's config.lua with types, defaults and bounds: interval, radius, vehicle classes, and the spawn-code blacklist and whitelist."
 order: 2
 group: "tSync"
 ---
@@ -65,28 +65,57 @@ nothing. So is a class outside the 0–22 GTA defines, and an empty list.
 A vehicle still has to have its lights **on** to be touched. tSync never
 switches anything on; it only re-times what is already running.
 
-## Config.deferToTLS
+## Config.vehicleBlacklist
 
-**boolean, default `true`**
+**table of spawn codes, default `{}`**
 
-Skip vehicles that another lighting script is driving.
+Never sync these, whatever their class.
 
-tSync restarts GTA's light timer, so a script that **draws** its own lights is
-unaffected by the trick either way. The reason to skip those vehicles is
-different: such a script may still be using the siren flag for its **audio**,
-and restarting that flag can clip the siren.
+```lua
+Config.vehicleBlacklist = { "firetruk", "ambulance" }
+```
 
-Today this means [tLS](https://timmygstudios.com/software/tls). The check costs
-one export call per candidate vehicle per pass and is skipped outright when no
-such resource is running, so there is nothing to turn off for performance.
+Spawn codes are the strings you would use with `/car`, and case does not
+matter — they are compared as model hashes, and the hash lowercases.
 
-<Callout type="info" title="Both resource names are probed">
-  tLS was renamed from `tELS` on 2026-10-24. tSync probes `tLS` first and falls
-  back to `tELS`, so a server that has not renamed its folder still gets the
-  deference.
+Reach for it when one model's lights look wrong re-timed, or when a vehicle is
+driven by a lighting script tSync cannot detect.
+
+## Config.vehicleWhitelist
+
+**table of spawn codes, default `{}`**
+
+Sync **only** these.
+
+```lua
+Config.vehicleWhitelist = { "police3", "sheriff2" }
+```
+
+<Callout type="warning" title="A non-empty whitelist replaces the class check">
+  It does not narrow `vehicleClasses` — it stands in for it. Naming a spawn code
+  is more specific than naming a class, and the usual reason to reach for this
+  list is a vehicle pack that did **not** ship as class 18. If the whitelist
+  were merely an extra filter on top of the classes, that case could not be
+  expressed at all.
 </Callout>
 
-Set it to `false` only if you want tSync to re-phase those vehicles too.
+The blacklist still wins. A model in both lists is never synced, and that is
+reported at boot rather than quietly resolved — an owner who whitelisted a
+vehicle and watches it not sync deserves to be told why.
+
+## Deferring to another lighting script
+
+**Not configurable, deliberately.**
+
+A vehicle driven by a script that renders its own lights — [tLS](https://timmygstudios.com/software/tls)
+— is always skipped. There is no setting, because there is no state of the
+world where you would want otherwise: the reset cannot help such a vehicle
+(there is no engine timer behind rendered LEDs to restart) and it can clip that
+script's siren, which shares the flag. A switch would only have been a way to
+turn on a bug.
+
+Both resource names are probed. tLS was renamed from `tELS` on 2026-10-24, so a
+server that has not renamed its folder still gets the deference.
 
 ## What is deliberately not configurable
 

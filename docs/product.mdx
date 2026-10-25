@@ -68,7 +68,7 @@ tSync restarts those timers together.
 <Stats
   items={[
     { value: "0", label: "net events — the sync sends nothing" },
-    { value: "4", label: "settings, none of them required" },
+    { value: "5", label: "settings, none of them required" },
     { value: "1", label: "dependency — tLib, and it's free" },
     { value: "MIT", label: "licensed, full source in the download" },
   ]}
@@ -98,7 +98,7 @@ The obvious alternative — reset, then broadcast the reset to nearby clients �
 
 ## Configuration
 
-Four settings, none of them required. Interval, radius, which vehicle classes, and whether to defer to another lighting script. Everything is in `config.lua`, commented in full, and validated at boot — a mistyped key is a line naming the key and the fix, not a setting that silently did nothing.
+Five settings, none of them required. Interval, radius, which vehicle classes, and spawn-code blacklist and whitelist. Deferring to another lighting script is automatic and has no setting — there is no state of the world where you would want otherwise. Everything is in `config.lua`, commented in full, and validated at boot — a mistyped key is a line naming the key and the fix, not a setting that silently did nothing.
 
 ## Requirements
 

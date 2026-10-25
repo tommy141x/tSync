@@ -67,18 +67,34 @@ Config.radius = 150.0
 Config.vehicleClasses = { 18 }
 
 -- =========================================================================
---  4. SCRIPTS THAT DRIVE THEIR OWN LIGHTS
+--  4. SPECIFIC VEHICLES — by spawn code
 -- =========================================================================
---  tSync works by restarting GTA's own light timer, so it only has any
---  effect on vehicles lit by GTA's own system -- vanilla, Luxart Vehicle
---  Control, Ultimate Lighting Controller, and the rest of the non-ELS world.
+--  Both lists are spawn codes (model names), the same string you would use
+--  with /car. Case does not matter.
 --
---  A script that DRAWS its own lights is untouched by the trick, but it may
---  still be using the siren flag for its AUDIO, and restarting that flag can
---  clip the siren. Leave this on to skip those vehicles entirely.
+--  NEITHER IS REQUIRED. Left empty, tSync syncs every vehicle whose class is
+--  in the list above.
 --
---  Today this means tLS (Tommy's Lighting System). The check costs one
---  export call per candidate vehicle per pass and is skipped outright when
---  tLS is not running, so there is nothing to turn off for performance.
+--  BLACKLIST — never sync these, whatever their class.
+--
+--      Config.vehicleBlacklist = { "firetruk", "ambulance" }
+--
+--  For a model whose lights look wrong when re-timed, or one running a
+--  lighting script tSync cannot detect.
 
-Config.deferToTLS = true
+Config.vehicleBlacklist = {}
+
+--  WHITELIST — sync ONLY these.
+--
+--      Config.vehicleWhitelist = { "police3", "sheriff2" }
+--
+--  ⚠️ A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE. Naming a spawn
+--  code is more specific than naming a class, and the main reason to reach
+--  for this list is a fleet whose vehicles are NOT class 18 -- a pack that
+--  shipped as class 0 syncs if you name it here, and would not if the
+--  whitelist were merely an extra filter on top of the classes.
+--
+--  The blacklist still wins. A model in both lists is never synced, and
+--  that is reported at boot rather than silently resolved.
+
+Config.vehicleWhitelist = {}

@@ -31,18 +31,19 @@ a script that draws its own lights. It only re-times what is already running.
 
 It will not help a script that renders its own LEDs, because there is no engine
 timer behind those to restart. If you run [tLS](https://timmygstudios.com/software/tls),
-leave `Config.deferToTLS` on and tSync will stay out of its way.
+tSync stays out of its way automatically.
 
 ## Configuration
 
-Everything lives in `config.lua`, which is commented in full. Four settings:
+Everything lives in `config.lua`, which is commented in full. Five settings:
 
-| Key              | Default  |                                                                   |
-| ---------------- | -------- | ----------------------------------------------------------------- |
-| `intervalMs`     | `5000`   | how long two vehicles may drift before being pulled back together |
-| `radius`         | `150.0`  | metres; beyond this they are not legible anyway                   |
-| `vehicleClasses` | `{ 18 }` | 18 is Emergency. Add 19 for Military                              |
-| `deferToTLS`     | `true`   | skip vehicles another lighting script owns                        |
+| Key                | Default  |                                                                   |
+| ------------------ | -------- | ----------------------------------------------------------------- |
+| `intervalMs`       | `5000`   | how long two vehicles may drift before being pulled back together |
+| `radius`           | `150.0`  | metres; beyond this they are not legible anyway                   |
+| `vehicleClasses`   | `{ 18 }` | 18 is Emergency. Add 19 for Military                              |
+| `vehicleBlacklist` | `{}`     | spawn codes never to sync                                         |
+| `vehicleWhitelist` | `{}`     | sync only these spawn codes; replaces the class check             |
 
 Changes need a resource restart. A mistyped key is reported at boot, naming the
 key and the fix, and your file is never rewritten.
