@@ -20,7 +20,8 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "verify": "bun run secrets:check && bun run test:lua:control && bun run check:syntax:control && bun run lint && bun run check:syntax && bun run test && bun run prod"
+    "verify": "bun run secrets:check && bun run test:lua:control && bun run check:syntax:control && bun run lint && bun run check:syntax && bun run test && bun run prod",
+    "thumb": "bun scripts/thumb.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.3",

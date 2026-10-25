@@ -1,0 +1,73 @@
+**[Store page](https://timmygstudios.com/software/tsync)** · **[Documentation](https://timmygstudios.com/docs/tSync)** · [Discord](https://timmygstudios.com/discord)
+
+---
+
+# tSync — patrol cars that flash together, on whatever non-ELS lighting you already run
+
+GTA runs every emergency vehicle's light pattern off a timer that starts when its siren comes on. Two cars that lit up a second apart flash a second apart for as long as they are lit, and nothing in the game ever pulls them together. It is the detail that makes a line of patrol cars look like a line of separate patrol cars.
+
+tSync restarts those timers together.
+
+**Free. MIT licensed, full source in the download, nothing escrowed.**
+
+**[Get tSync — free, MIT](https://timmygstudios.com/software/tsync)** · [Documentation](https://timmygstudios.com/docs/tSync) · [Discord](https://timmygstudios.com/discord)
+
+---
+
+**0** net events — the sync sends nothing · **4** config options, none of them required · **0** databases, NUI files and build steps
+
+---
+
+## Features
+
+- **Works with what you already run** — vanilla lights, Luxart Vehicle Control, Ultimate Lighting Controller, and the rest of the non-ELS world. tSync does not replace your lighting script, it re-times it
+- **Nothing to operate** — no keybind, no menu, no command an officer uses. There is one diagnostic and that is the whole surface
+- **Runs with zero edits** — all four options ship with a default, and a key you delete comes back as the value that shipped
+- **No server component to the sync, and no network traffic** — see below, because this is the interesting part
+- **Stays out of the way** — a vehicle another lighting script is driving is skipped by default
+- **Free, and readable** — MIT licensed, every file in the download editable, no encrypted file and no escrow
+
+---
+
+## How it works, and why it is this small
+
+Two facts about FiveM do most of the work.
+
+**The reset is per-observer.** Toggling a vehicle's siren flag restarts GTA's light timer for that vehicle *on the client that does it* — including vehicles that client does not own. So the fix is applied to what you are looking at, and there is no ownership to negotiate. There is no case where a car cannot be synced because somebody else is driving it.
+
+**The clock is already shared.** Every client has `GetNetworkTimeAccurate()`, which the engine keeps synchronised. tSync does not pick its own moment to re-phase; it waits for the next multiple of the configured interval on that clock. Every client reaches that instant together **without being told to**.
+
+Put together: no net events, no server component to the sync, and no dependence on latency. A player on a 300 ms connection re-phases at the same instant as one on 20 ms, because neither is waiting for a message.
+
+> **The alternative, and why it is not used.** Reset, then broadcast the reset to nearby clients. That is the natural design if you have not noticed the clock is already shared — and once you have, the round trip buys nothing except a dependency on ping.
+
+---
+
+## What it will not do
+
+- It will not switch lights on or off, or change a pattern, a colour or a flash rate. It only re-times what is already running
+- It is not a lighting controller. No UI, no keybinds, no patterns
+- **It cannot sync a script that renders its own LEDs.** There is no engine timer behind those to restart. tSync is for vehicles GTA is lighting
+
+---
+
+## Requirements
+
+| | |
+| --- | --- |
+| tLib | **v1.0+**, free |
+| Framework | None, and none is needed |
+| Database | None |
+| OneSync | Not required |
+
+---
+
+## Configuration
+
+Four settings in `config.lua`, commented in full: how often to re-phase, how far out to bother, which vehicle classes count, and whether to defer to another lighting script.
+
+Validated at boot — a mistyped key is a line naming the key, the file and the fix, not a setting that silently did nothing. Your file is never rewritten.
+
+---
+
+**[Get tSync — free, MIT](https://timmygstudios.com/software/tsync)** · [Documentation](https://timmygstudios.com/docs/tSync) · [Discord](https://timmygstudios.com/discord)
