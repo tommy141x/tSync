@@ -1,3 +1,5 @@
+![tSync](docs/public/banner.jpg)
+
 # tSync
 
 Brings nearby emergency lights back into step. Free, MIT, and it needs

@@ -43,12 +43,20 @@ media:
 # Explicit rather than left to `coverImage()`, so the store tile is the hero and
 # not whichever entry happens to sort first.
 coverImage: "/assets/tSync/thumb.jpg"
+# `/releases/latest/download/` rather than a pinned `/v1.0.0/` path, so the next
+# release is served without editing this file and this can never point at a
+# superseded build. Same reasoning as tDB's; verified 2026-10-26: 200, redirecting
+# to the asset.
+downloadUrl: "https://github.com/tommy141x/tSync/releases/latest/download/tSync.zip"
 pricing:
-  # `amount: 0` WITH a `packageId`, which is tChirp's pairing rather than tDB's.
-  # tSync is free — MIT, no escrow, source in the download — but it HAS a Tebex
-  # package, so free is a PRICE and 0 is how it is stated. 5347030 is read off
-  # the live Headless API, where it already reads 0; this line does not set the
-  # price, it states it, and the two have to agree.
+  # `amount: 0` with NO `packageId`, which is tDB's pairing. Tebex package 5347030
+  # existed and is no longer how anyone gets this: the source went public on
+  # 2026-10-26 and the download above comes straight off the GitHub release, so
+  # routing a free MIT script with no escrow through a cart bought nothing.
+  #
+  # The 19 people who hold 5347030 are unaffected — it stays in
+  # `HISTORICAL_PACKAGE_NAMES` in tWeb's src/lib/billing/legacy-product-id.ts,
+  # which is what resolves a stored id once no listing claims it.
   #
   # There is no `keymasterAsset` and there must not be one. Nothing here is
   # escrowed, so nothing is granted, and a Keymaster line would send a buyer
@@ -58,7 +66,6 @@ pricing:
     label: "Free and open source — MIT licensed, full source in the download, nothing escrowed."
     amount: 0
     currency: "usd"
-    packageId: "5347030"
 ---
 
 GTA runs every emergency vehicle's light pattern off a timer that starts when its siren comes on. Two cars that lit up a second apart flash a second apart for as long as they are lit, and nothing in the game ever pulls them together. It is the detail that makes a line of patrol cars look like a line of separate patrol cars.
