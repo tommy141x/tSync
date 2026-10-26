@@ -1,100 +1,65 @@
 --[[----------------------------------------------------------------------
     TIMMYG Studios — tSync 1.0.0
-    config.lua — the file you edit. It is the only one.
+    config.lua — the only file you edit, and nothing in it is required.
 
-    NOTHING HERE IS REQUIRED. tSync runs with zero edits.
+    Change values to the RIGHT of the = only. Restart the resource to apply;
+    nothing here is read again while the server runs.
 
-    HOW TO EDIT: change values to the RIGHT of the = sign only. Keep the
-    commas, and do not remove the quotes around text.
-
-    APPLYING CHANGES: restart the resource. `ensure tSync` in the server
-    console, or txAdmin > Resources > tSync > Restart. Nothing here is read
-    again while the server runs.
-
-    IF SOMETHING IS WRONG: `shared/config-spec.lua` checks this file at boot.
-    Delete a key and it comes back as the value shipped here; set one to
-    something illegal and you get a line naming the key, the file and the
-    fix. Your file is never rewritten.
+    `shared/config-spec.lua` checks this file at boot. Delete a key and it
+    comes back as the value shipped here; set one to something illegal and
+    you get a line naming the key, the file and the fix. Your file is never
+    rewritten.
 
     Docs: https://timmygstudios.com/docs/tSync/configuration
 ------------------------------------------------------------------------]]
 
 Config = {}
 
--- =========================================================================
---  1. TIMING — how often lights are brought back into step
--- =========================================================================
---  GTA runs each vehicle's light pattern on its own clock, started when the
---  siren was switched on. Two cars that lit up a second apart stay a second
---  apart forever. tSync restarts those clocks together so they flash as one.
+-- TIMING — how often lights are pulled back into step.
 --
---  THE NUMBER IS A CEILING ON DRIFT, NOT A REFRESH RATE. Nothing is redrawn
---  between passes; this is only how long two vehicles may stay visibly out
---  of step before they are pulled back together.
---
---  Lower is tighter and costs more: each pass walks the vehicles near you.
---  Below about 1000 the reset itself becomes visible as a stutter in the
---  pattern, which is worse than the drift it is fixing.
+-- A CEILING ON DRIFT, NOT A REFRESH RATE: nothing is redrawn between passes,
+-- this is only how long two vehicles may stay visibly apart. Lower is tighter
+-- and costs more, and below about 1000 the reset itself reads as a stutter.
 
 Config.intervalMs = 5000
 
--- =========================================================================
---  2. RANGE — how far out to bother
--- =========================================================================
---  Metres. Vehicles beyond this are left alone.
+-- RANGE, in metres. Vehicles beyond this are left alone.
 --
---  This is a RENDERING fix, so the only vehicles that matter are the ones on
---  screen. The default is a little past where lights stop being legible,
---  which costs a few extra vehicles per pass and means a car does not snap
---  into step as you drive up to it.
+-- A rendering fix, so only what is on screen matters. The default is a little
+-- past where light bars stop being legible, so a car does not snap into step
+-- as you drive up to it.
 
 Config.radius = 150.0
 
--- =========================================================================
---  3. WHICH VEHICLES
--- =========================================================================
---  GTA vehicle class numbers. 18 is Emergency, which is every police car,
---  ambulance and fire truck in the base game and what almost every emergency
---  vehicle mod sets itself to.
+-- WHICH VEHICLES — GTA class numbers. 18 is Emergency: every police car,
+-- ambulance and fire truck in the base game, and what almost every emergency
+-- mod sets itself to. Add 19 for Military-class vehicles with light bars.
+-- Full list: https://docs.fivem.net/natives/?_0x29439776AAA00A62
 --
---  Add 19 if your fleet includes Military-class vehicles with light bars.
---  The full list is at
---  https://docs.fivem.net/natives/?_0x29439776AAA00A62
---
---  A vehicle still has to have its lights ON to be touched: tSync never
---  switches anything on, it only re-times what is already running.
+-- Lights still have to be ON. tSync never switches anything on.
 
 Config.vehicleClasses = { 18 }
 
--- =========================================================================
---  4. SPECIFIC VEHICLES — by spawn code
--- =========================================================================
---  Both lists are spawn codes (model names), the same string you would use
---  with /car. Case does not matter.
+-- BLACKLIST — never sync these, whatever their class. Spawn codes, the same
+-- strings you would use with /car; case does not matter.
 --
---  NEITHER IS REQUIRED. Left empty, tSync syncs every vehicle whose class is
---  in the list above.
+--     Config.vehicleBlacklist = { "firetruk", "ambulance" }
 --
---  BLACKLIST — never sync these, whatever their class.
---
---      Config.vehicleBlacklist = { "firetruk", "ambulance" }
---
---  For a model whose lights look wrong when re-timed, or one running a
---  lighting script tSync cannot detect.
+-- For a model whose lights look wrong re-timed, or one running a lighting
+-- script tSync cannot detect.
 
 Config.vehicleBlacklist = {}
 
---  WHITELIST — sync ONLY these.
+-- WHITELIST — sync ONLY these.
 --
---      Config.vehicleWhitelist = { "police3", "sheriff2" }
+--     Config.vehicleWhitelist = { "police3", "sheriff2" }
 --
---  ⚠️ A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE. Naming a spawn
---  code is more specific than naming a class, and the main reason to reach
---  for this list is a fleet whose vehicles are NOT class 18 -- a pack that
---  shipped as class 0 syncs if you name it here, and would not if the
---  whitelist were merely an extra filter on top of the classes.
+-- ⚠️ A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE rather than
+-- narrowing it. The case it exists for is a vehicle pack that did not ship as
+-- class 18: name it here and it syncs, which an extra filter on top of the
+-- classes could not express.
 --
---  The blacklist still wins. A model in both lists is never synced, and
---  that is reported at boot rather than silently resolved.
+-- The blacklist still wins, and a model in both lists is reported at boot
+-- rather than silently resolved.
 
 Config.vehicleWhitelist = {}

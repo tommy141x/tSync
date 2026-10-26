@@ -2,36 +2,21 @@
 
 // Validates docs/ before the sync workflow publishes it: `bun run docs:check`
 //
-// ## Why this is not optional on tSync specifically
-//
 // `.gitea/workflows/docs.yml` is a PUSH: on every commit touching docs/ it
-// replaces `src/content/docs/tSync/` in tWeb wholesale and pushes. The site's
-// own CI runs AFTER that push has landed, so a broken page is already live by
-// the time anything notices — and tSync's pages carry five cross-page anchor
-// links (`/docs/tSync/configuration#siren-provider` and four more), which are
-// exactly the links a renamed heading silently breaks.
+// replaces `src/content/docs/tSync/` in tWeb wholesale and pushes. The site's own
+// CI runs AFTER that push lands, so a broken page is live before anything
+// notices — and these pages carry cross-page anchor links, which are exactly
+// what a renamed heading silently breaks.
 //
-// ## What it checks
-//
-//   1. Frontmatter      — the `---` block exists and carries `title`; `description`,
-//                         `order` and `group` warn when absent (the schema's optional
-//                         keys, and tSync sets all three today).
-//   2. URL collisions   — `x.mdx` and `x/index.mdx` collapse to the same slug.
-//   3. Media references — every `/assets/tSync/<file>` resolves in docs/public/.
-//                         tSync ships no media today; the check is here because the
-//                         workflow's media step is already wired and a first
-//                         screenshot must not be the thing that discovers this.
-//   4. Orphan media     — a file in docs/public/ no page references (warning only:
-//                         one may be staged ahead of the page that uses it).
-//   5. Link targets     — every in-page `](#anchor)` and cross-page
-//                         `](/docs/tSync/<page>#anchor)` resolves to a real heading.
-//
-// Modelled on tDB's, which is the right comparator — same forge, same MIT
-// licence, same push-shaped docs workflow, same page set. Not shared with it:
-// one copy per resource is the established shape here, and the alternative
-// (a module in tLib) would need tLib to own a per-resource SLUG.
+// Checks: frontmatter (`title` required, `description`/`order`/`group` warn);
+// URL collisions, where `x.mdx` and `x/index.mdx` collapse to one slug; media
+// references under `/assets/tSync/`; orphan media (warning — one may be staged
+// ahead of its page); and every in-page and cross-page anchor link resolving to
+// a real heading.
 //
 // Plain node, no dependencies, so the CI runner needs nothing but a checkout.
+// One copy per resource is the shape here; a module in tLib would need tLib to
+// own a per-resource SLUG.
 //
 // ⚠️ EXIT CODES: 0 clean, 1 at least one error. Warnings never fail. An empty
 // docs/content is exit 1, not 0 — see the floor below.
@@ -48,12 +33,10 @@ const DOCS_PREFIX = `/docs/${SLUG}/`;
 
 // ── The scanners, named ──────────────────────────────────────────────────────
 //
-// Every check above is a regex over MDX source, and a regex that stops matching
-// reports NOTHING rather than reporting a problem. So they are named constants
-// the negative control can kill one at a time and watch the gate go quiet.
-// `DOCS_CONTROL_DEAD=asset,anchor` substitutes a regex that can never match, and
-// is honoured ONLY in control mode — it is the control's red path, not a switch
-// anybody should reach for on a real run. Same mechanism as tRadio's.
+// A regex that stops matching reports NOTHING rather than reporting a problem.
+// So each is a named constant the negative control can kill one at a time and
+// watch the gate go quiet. `DOCS_CONTROL_DEAD=asset,anchor` substitutes a regex
+// that can never match, and is honoured ONLY in control mode.
 const CONTROL = process.env.DOCS_GATE_CONTROL === "1";
 const DEAD = new Set(
   CONTROL ? (process.env.DOCS_CONTROL_DEAD ?? "").split(",").filter(Boolean) : []
@@ -105,13 +88,12 @@ if (mdxFiles.length === 0) {
 /**
  * Heading → anchor id, matching the site's github-slugger.
  *
- * The order of the last two steps is the whole thing, and getting it backwards is
- * how this check reports a WORKING link as broken. github-slugger drops the
- * stripped characters and then replaces each REMAINING space one at a time — so
- * `## \`/tunit\` — the driver menu` leaves two adjacent spaces where the em dash
- * was and the real anchor is `tunit--the-driver-menu`, with two hyphens. A
- * `\s+ → -` collapse produces the single-hyphen form, which exists nowhere.
- * Underscores survive, so `tunit_diag` is `#tunit_diag`.
+ * The order of the last two steps is the whole thing, and getting it backwards
+ * reports a WORKING link as broken. github-slugger drops the stripped characters
+ * and THEN replaces each remaining space one at a time, so a heading like
+ * `## Deferring — automatically` keeps the two spaces either side of the em dash
+ * and slugs to `deferring--automatically`, with two hyphens. A `\s+ → -` collapse
+ * produces the single-hyphen form, which exists nowhere. Underscores survive.
  */
 function slugify(heading) {
   return heading
@@ -193,39 +175,26 @@ if (errors.length === 0) console.log(`  pages: ${[...pages.keys()].sort().join("
 
 // ── Negative control (DOCS_GATE_CONTROL=1) ──────────────────────────────────
 //
-// `bun run docs:check:control` re-runs this file with one or more named scanners
-// dead and requires the ERROR COUNT to move in the direction named. Each case is
-// a genuinely separate process, so it goes through the real code path rather
-// than a re-implementation of it.
+// `bun run docs:check:control` re-runs this file with named scanners dead and
+// requires the error count to move as named. Each case is a separate process, so
+// it goes through the real code path.
 //
-// ## ⚠️ Why the obvious four cases are not the cases
+// ⚠️ Killing each scanner in turn is NOT the control. The first version did
+// exactly that and two cases passed vacuously — measured, not reasoned: on clean
+// docs the `page` and `asset` scanners report zero findings, and zero is also
+// what a dead scanner reports. A scanner's absence has to change a count that is
+// not already zero, which needs a defect in play: case 2 plants one by killing
+// `heading`, and case 3 kills `page` with that defect still planted.
 //
-// The first version of this control killed each of the four scanners in turn and
-// asserted that its findings disappeared. Two of those passed VACUOUSLY and that
-// was MEASURED, not reasoned about: tSync's docs are clean, so the `page` and
-// `asset` scanners each report zero findings on a healthy run — and zero
-// findings is also what a dead scanner reports. The control printed "as
-// required" for both while proving nothing about either.
+// Knowingly unproven, rather than faked:
 //
-// The fix is to make a scanner's absence change a count that is NOT already zero,
-// which needs a defect in play. Case 2 plants one (no anchors exist, so all five
-// cross-page anchor links break), and case 3 then removes the `page` scanner
-// while that defect is still planted and requires the five findings to vanish.
-// That is what makes `page` load-bearing rather than merely silent.
-//
-// ## What this control does NOT prove, stated rather than faked
-//
-//   · `asset` / `orphan` — tSync ships no docs/public and references no media,
-//     so there is nothing in this corpus for either to find and no run of them
-//     can be told from a dead one. Proving them needs a fixture page, and a
-//     fixture would be the only reason either exists today. The checks are kept
-//     because the sync workflow's media step is already wired and the first
-//     screenshot added must not be what discovers them; they are knowingly
-//     UNPROVEN until there is a screenshot to prove them against.
+//   · `asset` / `orphan` — nothing in this corpus for either to find, so no run
+//     can be told from a dead one. Proving them needs a fixture page, which
+//     would exist for no other reason. Kept because the workflow's media step is
+//     already wired and the first screenshot must not be what discovers them.
 //   · `fence` — killing it can only ADD anchors (headings inside code blocks
-//     become anchor ids), never remove one, so it cannot break a link that
-//     resolves today. Unprovable without a page that fences a heading whose text
-//     collides with a real one.
+//     become ids), never remove one, so it cannot break a link that resolves
+//     today. Unprovable without a fenced heading colliding with a real one.
 if (CONTROL && DEAD.size === 0) {
   const failuresFound = [];
   const run = (dead) => {
@@ -293,19 +262,15 @@ if (CONTROL && DEAD.size === 0) {
       (r) => r.errors >= anchorLinks && r.exit === 1,
     ],
     [
-      // Both dead. `heading` plants the defect, and removing `page` must make the
-      // gate blind to EXACTLY the cross-page half of it — which is the only way to
-      // tell a working `page` scanner from a dead one on docs that are clean.
+      // Both dead: `heading` plants the defect, and killing `page` must make the
+      // gate blind to exactly the cross-page half of it.
       //
-      // NOT "must report 0". `heading` also breaks every IN-PAGE `](#anchor)`
-      // link, and `page` never looked at those — so on a resource that has some,
-      // a perfectly working `page` kill still leaves them behind. Requiring 0
-      // reports NOT MEASURED on tAFK (4 left) and tUnit (4 left) while the
-      // scanner is doing its job, and passes on tSync and tBlips only because
-      // neither has an in-page link.
-      //
-      // The honest quantity is the DROP, and it must equal anchorLinks exactly:
-      // fewer means `page` is still finding some of them, more means it took
+      // NOT "must report 0". `heading` also breaks every in-page `](#anchor)`
+      // link and `page` never looked at those, so on a resource that has some a
+      // working `page` kill still leaves them behind — requiring 0 reports NOT
+      // MEASURED on tAFK and tUnit (4 left each) while the scanner is doing its
+      // job. The honest quantity is the DROP, and it must equal anchorLinks
+      // exactly: fewer means `page` is still finding some, more means it took
       // something that was never its to take.
       "heading,page",
       () =>

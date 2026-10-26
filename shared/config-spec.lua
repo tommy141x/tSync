@@ -1,66 +1,47 @@
 -- Startup validation for config.lua, through tlib.config.
 --
--- Runs on BOTH VMs, immediately after config.lua and before any client chunk,
--- so a mistyped key is a line in the console at boot instead of a setting that
--- silently did nothing forever. Unvalidated, `intervalMs` spelled `intervalMS`
--- reaches the sync loop as nil and divides by it, which throws inside a
--- CreateThread and kills the loop for the rest of the session while naming
--- neither the file nor the key.
---
--- Where the numbers live
+-- Runs on both VMs, immediately after config.lua and before any client chunk.
+-- Unvalidated, `intervalMs` spelled `intervalMS` reaches the sync loop as nil
+-- and is divided by, which throws inside a CreateThread and kills the loop for
+-- the session while naming neither the file nor the key.
 --
 -- `config.lua` IS THE AUTHORITY. The `default =` fields below are only what
--- tlib.config writes into `Config` for a key the owner DELETED; tlib.config
--- never overwrites a value the owner actually set. `scripts/tests/config-spec.lua`
--- asserts the two files agree, literal for literal, and that the shipped file
--- passes its own spec with zero errors and zero warnings.
+-- tlib.config writes in for a key the owner DELETED; it never overwrites a value
+-- that was set. `scripts/tests/config-spec.lua` asserts the two files agree
+-- literal for literal.
 --
--- `vehicleClasses` is declared as a type only. Its INSIDE is checked below, by
--- code, because the mistake that actually happens there is not a wrong type --
--- it is `18` written bare instead of `{ 18 }`, or a class number outside the
--- range GTA defines, and neither is expressible as a per-key rule.
+-- `vehicleClasses` is a type only; its contents are checked in code below,
+-- because the mistake that happens is not a wrong type -- it is `18` written
+-- bare instead of `{ 18 }`, or a class outside the range GTA defines.
 
 local RESOURCE = 'tSync'
 local FILE = 'config.lua'
 
---- Global so `tsync_diag` can re-run the same checks on demand rather than
---- asking an owner to restart and catch the boot lines scrolling past.
+--- Global so `tsync_diag` can re-run these checks without a restart.
 tsyncConfigSpec = {
     file = FILE,
     resource = RESOURCE,
     keys = {
-        -- min 250 rather than 1: below roughly a second the reset is visible as
-        -- a stutter, and at a handful of milliseconds it is a vehicle walk every
-        -- frame. 250 is well past useful and still finite, which is what the
-        -- bound is for -- an owner who writes 0 gets a named error instead of a
-        -- frozen client.
-        --
-        -- No max. A very large value is not a mistake: it is "sync rarely",
-        -- which is a legitimate choice on a server that mostly parks.
+        -- min 250, not 1: a bound an owner who writes 0 hits as a named error
+        -- instead of a frozen client. No max -- a very large value is "sync
+        -- rarely", a legitimate choice on a server that mostly parks.
         intervalMs = { type = 'number', default = 5000, min = 250 },
 
-        -- Metres. min 1.0 because 0 disables the feature in a way that reads
-        -- like a setting rather than an off switch -- an owner who wants tSync
-        -- off should stop the resource, not set its radius to nothing.
-        --
-        -- max 500 is the point past which the vehicles being walked are not
-        -- rendered at all, so the work is certain waste. It is a guard against
-        -- a typo'd extra zero, not a tuning opinion.
+        -- Metres. min 1.0 because 0 is an off switch dressed as a setting; an
+        -- owner who wants tSync off should stop the resource. max 500 is a guard
+        -- against a typo'd extra zero, not a tuning opinion: past it the
+        -- vehicles being walked are not rendered at all.
         radius = { type = 'number', default = 150.0, min = 1.0, max = 500.0 },
 
-        -- Type only; the contents are checked in crossChecks below.
+        -- Contents checked in crossChecks below, where a bad entry can be named.
         vehicleClasses = { type = 'table' },
-
-        -- Type only; the contents are checked in crossChecks below, where a
-        -- spawn code that is not a string can be named.
         vehicleBlacklist = { type = 'table' },
         vehicleWhitelist = { type = 'table' },
     },
 }
 
--- GTA defines classes 0-22. A number outside that matches no vehicle, so the
--- entry is not wrong in a way anything will ever report -- it simply never
--- fires, which is indistinguishable from "tSync does not work on my fleet".
+-- GTA defines classes 0-22. A number outside that matches no vehicle and
+-- reports nothing -- indistinguishable from "tSync does not work on my fleet".
 local MAX_VEHICLE_CLASS = 22
 
 --- Checks that cannot be expressed as per-key rules.
@@ -74,11 +55,9 @@ local function crossChecks(cfg)
 
     --- A spawn-code list: a plain array of non-empty strings.
     ---
-    --- Checked rather than trusted because every way of getting it wrong is
-    --- silent. A number instead of a string hashes to a different value and
-    --- simply never matches; a map instead of a list is skipped by ipairs, so
-    --- half the entries do nothing; an empty string hashes to a real key that
-    --- no vehicle has.
+    --- Every way of getting this wrong is silent. A number hashes to a value no
+    --- vehicle has; a map is skipped by ipairs, so half the entries do nothing;
+    --- an empty string hashes to a real key nothing matches.
     local function checkSpawnList(value, key)
         if type(value) ~= 'table' then return end
         for index, name in pairs(value) do
@@ -98,9 +77,9 @@ local function crossChecks(cfg)
     checkSpawnList(cfg.vehicleBlacklist, 'vehicleBlacklist')
     checkSpawnList(cfg.vehicleWhitelist, 'vehicleWhitelist')
 
-    -- A model in both lists is not resolved silently in favour of either. The
-    -- code answers "never sync" and says so here, because the alternative is an
-    -- owner who whitelisted a vehicle watching it not sync with no explanation.
+    -- The code answers "never sync" for a model in both lists, and says so here:
+    -- the alternative is an owner who whitelisted a vehicle watching it not sync
+    -- with no explanation.
     if type(cfg.vehicleBlacklist) == 'table' and type(cfg.vehicleWhitelist) == 'table' then
         local blocked = {}
         for _, name in ipairs(cfg.vehicleBlacklist) do
@@ -153,8 +132,7 @@ end
 
 --- The boot verdict, read by client/cl_sync.lua.
 ---
---- A global boolean rather than the client calling `tsyncConfigOk()` itself:
---- both VMs load this file, and calling it per VM would print the same wall of
---- red twice -- an owner reading a duplicated error reasonably concludes there
---- are two of them.
+--- A global rather than the client calling `tsyncConfigOk()` itself: both VMs
+--- load this file, so calling it per VM would print the same wall of red twice,
+--- and a duplicated error reasonably reads as two errors.
 tsyncConfigValid = tsyncConfigOk()

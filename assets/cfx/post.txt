@@ -21,7 +21,7 @@ tSync restarts those timers together.
 - **Works with what you already run** — vanilla lights, Luxart Vehicle Control, Ultimate Lighting Controller, and the rest of the non-ELS world. tSync does not replace your lighting script, it re-times it
 - **Nothing to operate** — no keybind, no menu, no command an officer uses. There is one diagnostic and that is the whole surface
 - **Runs with zero edits** — all five options ship with a default, and a key you delete comes back as the value that shipped
-- **No server component to the sync, and no network traffic** — see below, because this is the interesting part
+- **No server component to the sync, and no network traffic**
 - **Stays out of the way** — a vehicle another lighting script is driving is skipped, automatically and with no setting to get wrong
 - **Free, and readable** — MIT licensed, every file in the download editable, no encrypted file and no escrow
 
@@ -31,7 +31,7 @@ tSync restarts those timers together.
 
 Two facts about FiveM do most of the work.
 
-**The reset is per-observer.** Toggling a vehicle's siren flag restarts GTA's light timer for that vehicle *on the client that does it* — including vehicles that client does not own. So the fix is applied to what you are looking at, and there is no ownership to negotiate. There is no case where a car cannot be synced because somebody else is driving it.
+**The reset is per-observer.** Toggling a vehicle's siren flag restarts GTA's light timer for that vehicle *on the client that does it* — including vehicles that client does not own. So the fix is applied to what you are looking at, and there is no ownership to negotiate: no case where a car cannot be synced because somebody else is driving it.
 
 **The clock is already shared.** Every client has `GetNetworkTimeAccurate()`, which the engine keeps synchronised. tSync does not pick its own moment to re-phase; it waits for the next multiple of the configured interval on that clock. Every client reaches that instant together **without being told to**.
 

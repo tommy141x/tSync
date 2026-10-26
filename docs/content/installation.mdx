@@ -5,21 +5,21 @@ order: 1
 group: "tSync"
 ---
 
-One dependency, no database, no NUI, no build step. Nothing is escrow-packed.
+One dependency, no database, no NUI, no build step.
 
 ## 1. Install tLib first
 
-tSync declares `dependency 'tLib'` and `tlib_min_version '1.0'`. Download it
-from [the releases page](https://github.com/tommy141x/tLib/releases).
+tSync declares `dependency 'tLib'` and `tlib_min_version '1.0'`. Download it from
+[the releases page](https://github.com/tommy141x/tLib/releases).
 
-Starting tSync without tLib stops it at load with a line naming tLib. That is
-the gate working — it is better than the alternative, which is a missing module
-surfacing as `attempt to index a function value` halfway down a script.
+Starting tSync without tLib stops it at load with a line naming tLib. That is the
+gate working: the alternative is a missing module surfacing as `attempt to index a
+function value` halfway down a script.
 
 ## 2. Drop the folder in
 
 Into `resources/`, named exactly `tSync`. No spaces, no `-main` suffix from a
-GitHub zip. The folder name is the resource name.
+GitHub zip — the folder name is the resource name.
 
 ## 3. Add it to server.cfg
 
@@ -48,13 +48,13 @@ entirely client-side and the server never runs a pass.
 
 The honest check is in-game, with two lit vehicles.
 
-1. Park two emergency vehicles side by side and switch both sets of lights on
-   a second or two apart, so they are visibly out of step.
+1. Park two emergency vehicles side by side and switch both sets of lights on a
+   second or two apart, so they are visibly out of step.
 2. Wait for `intervalMs` — five seconds by default.
 3. They should snap into step and stay there.
 
-If you want to see the mechanism rather than the result, run `tsync_diag` in
-the client console (F8):
+To see the mechanism rather than the result, run `tsync_diag` in the client
+console (F8):
 
 ```
 tSync 1.0.0 — tLib 1.0.0
@@ -64,10 +64,10 @@ last pass re-phased 2 vehicle(s), 1.4 s ago
 ```
 
 A **count of zero with vehicles clearly lit around you** is the useful failure:
-it means they are failing one of the selection rules rather than the reset not
-working. [Troubleshooting](/docs/tSync/troubleshooting) walks the four rules.
+they are failing a selection rule rather than the reset not working.
+[Troubleshooting](/docs/tSync/troubleshooting) walks the four rules.
 
 ## Upgrading
 
-Unzip over the top. `config.lua` ships with its defaults and is the only file
-you edit, so an upgrade replaces it — keep a copy if you have changed anything.
+Unzip over the top. `config.lua` ships with its defaults and is the only file you
+edit, so an upgrade replaces it — keep a copy if you have changed anything.

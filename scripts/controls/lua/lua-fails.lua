@@ -1,11 +1,9 @@
 -- Negative control for the Lua gate: an assertion that is FALSE.
 --
--- Never discovered by `bun run test:lua` — scripts/controls is outside its glob
--- on purpose, because a suite that is supposed to fail would otherwise make the
--- gate permanently red. Driven only by `LUA_CONTROL=1 bun run test:lua`, which
--- REQUIRES a non-zero exit from this file.
+-- Outside `bun run test:lua`'s glob on purpose, or the gate would be permanently
+-- red. Driven only by `LUA_CONTROL=1 bun run test:lua`, which REQUIRES a non-zero
+-- exit from this file.
 --
--- Deliberately the dullest possible failure: a plain `assert`, which is how
--- every real suite in scripts/tests reports. If this one stops failing, the
--- reporting mechanism the suites share has broken, not this file.
+-- A plain `assert`, which is how every real suite reports: if this stops failing,
+-- the reporting mechanism the suites share has broken, not this file.
 assert(1 == 2, 'the Lua gate control: this assertion is false on purpose')

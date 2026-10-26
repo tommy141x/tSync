@@ -1,17 +1,13 @@
 -- client/cl_sync.lua — which vehicles get re-phased, and in what order.
 --
--- THE ORDERING IS THE WHOLE FEATURE. Every candidate must have its siren flag
--- dropped before any of them is raised again; drop-and-raise one vehicle at a
--- time and each one restarts its timer at a different instant, which is exactly
--- the drift this resource exists to remove. The code reads as two plain loops
--- and nothing about its shape says they may not be fused, so the property is
--- pinned here rather than left to whoever reads it next.
+-- THE ORDERING IS THE WHOLE FEATURE: every candidate's siren must be dropped
+-- before any is raised again. The code is two plain loops and nothing about its
+-- shape says they may not be fused, so that property is pinned here.
 --
 -- The selection rules are pinned for a duller reason: every one of them fails
--- SILENTLY. A wrong class, a radius comparison the wrong way round, or a
--- deference check that answers backwards all produce a resource that either
--- never does anything or fights another script, and neither writes a line
--- anywhere.
+-- silently. A wrong class, a radius comparison the wrong way round or a
+-- backwards deference check produces a resource that does nothing or fights
+-- another script, and neither writes a line anywhere.
 
 local ROOT = (arg[0] or ''):match('^(.*)scripts[/\\]tests[/\\]') or './'
 local function path(p) return ROOT .. p end
@@ -24,9 +20,8 @@ end
 
 -- ── Host stubs ─────────────────────────────────────────────────────────────
 
--- GetEntityCoords returns something that answers `#(a - b)`. fengari has no
--- vector3, and the distance test is one of the rules being pinned, so a stub
--- that collapsed it to a number would remove the thing under test.
+-- fengari has no vector3, and the distance rule is one of the things pinned
+-- here, so this answers `#(a - b)` rather than collapsing to a number.
 local function vec(x, y, z)
     return setmetatable({ x = x, y = y, z = z }, {
         __sub = function(a, b) return vec(a.x - b.x, a.y - b.y, a.z - b.z) end,
@@ -53,14 +48,13 @@ function IsVehicleSirenOn(v) return (world[v] or {}).siren == true end
 function GetVehicleClass(v) return (world[v] or {}).class or 0 end
 function DoesEntityExist(v) return (world[v] or {}).exists ~= false end
 
--- LOWERCASES, because the real joaat does. That is the only property of the
--- hash the selection code relies on -- it is what lets an owner write
--- "Police3" in config.lua and have it match -- so a stub that preserved case
--- would let a case regression pass here and fail in game.
+-- LOWERCASES, because the real joaat does, and that is the only property of the
+-- hash the selection code relies on. A stub preserving case would let a case
+-- regression pass here and fail in game.
 function GetHashKey(s) return 'hash:' .. tostring(s):lower() end
 function GetEntityModel(v) return GetHashKey((world[v] or {}).model or 'unknown') end
 
--- Every SetVehicleSiren call in order, which is what the ordering check reads.
+-- In order, which is what the ordering check reads.
 local calls = {}
 function SetVehicleSiren(v, on) calls[#calls + 1] = { vehicle = v, on = on } end
 
@@ -73,9 +67,9 @@ function GetCurrentResourceName() return 'tSync' end
 local started = {}
 function GetResourceState(name) return started[name] or 'missing' end
 
--- `exports[name]:AreLightsActive(v)` must THROW for a resource that is not
--- running, exactly as FiveM does. The pcall in managedElsewhere exists for that
--- case, and a stub returning nil instead would let a real regression pass.
+-- Must THROW for a resource that is not running, exactly as FiveM does: that is
+-- the case the pcall in managedElsewhere exists for, and a stub answering nil
+-- would let a real regression pass.
 exports = setmetatable({}, {
     __index = function(_, resource)
         if started[resource] ~= 'started' then
@@ -89,8 +83,8 @@ exports = setmetatable({}, {
     end,
 })
 
--- The loop body is captured rather than run: this suite drives it one iteration
--- at a time so the clock can be moved between passes.
+-- Captured rather than run, so the suite can drive one iteration at a time and
+-- move the clock between passes.
 local threadBody
 function CreateThread(fn) threadBody = fn end
 
@@ -151,11 +145,9 @@ end
 
 --- Re-load cl_sync.lua with a different Config.
 ---
---- The spawn-code lists are hashed ONCE at load, which is the real behaviour --
---- config.lua is read at boot and never again. So a test that mutates
---- Config.vehicleBlacklist after the file is loaded is testing nothing, and
---- the first version of these checks did exactly that and passed the blacklist
---- case for the wrong reason. Reloading is what actually exercises them.
+--- The spawn-code lists are hashed ONCE at load, so mutating Config afterwards
+--- tests nothing. The first version of these checks did exactly that and passed
+--- the blacklist case for the wrong reason.
 local function reloadWith(overrides)
     for key, value in pairs(overrides) do Config[key] = value end
     dofile(path('client/cl_sync.lua'))
@@ -185,8 +177,7 @@ do
     check(#sirenCalls(13) == 0, 'a vehicle beyond the radius is left alone')
 end
 
--- The boundary case, because an inclusive/exclusive slip here is invisible:
--- a vehicle exactly at the radius is in range.
+-- An inclusive/exclusive slip here is invisible in game.
 do
     reset()
     addVehicle(10, { coords = vec(150, 0, 0) })
@@ -260,7 +251,7 @@ do
     reset()
     addVehicle(10, {})
     addVehicle(11, {})
-    -- Dropped after selection, which is the window the re-check exists for.
+    -- Deleted after selection, which is the window the re-check exists for.
     local realWait = Wait
     local co = coroutine.create(threadBody)
     local seen = 0
@@ -280,10 +271,9 @@ end
 
 -- ── Spawn-code lists ──────────────────────────────────────────────────────
 --
--- Every rule here fails SILENTLY in game: a blacklisted model that still syncs,
--- or a whitelisted one that does not, produces no error anywhere. The
--- whitelist's interaction with vehicleClasses is the part most likely to be
--- "simplified" later, so it is asserted in both directions.
+-- A blacklisted model that still syncs, or a whitelisted one that does not,
+-- produces no error anywhere. The whitelist's interaction with vehicleClasses is
+-- the part most likely to be "simplified" later, so it is asserted both ways.
 
 do
     reset()
@@ -320,9 +310,8 @@ do
     reloadWith({ vehicleWhitelist = {} })
 end
 
--- The case the whitelist exists for: a pack that did not ship as class 18.
--- An "extra filter on top of the classes" reading would make this impossible
--- to express, which is why the replacement semantic is the one implemented.
+-- The case the whitelist exists for: a pack that did not ship as class 18. An
+-- "extra filter on top of the classes" reading could not express it.
 do
     reset()
     reloadWith({ vehicleWhitelist = { 'customcruiser' } })
@@ -333,8 +322,7 @@ do
     reloadWith({ vehicleWhitelist = {} })
 end
 
--- Blacklist wins. config-spec.lua reports the overlap at boot rather than
--- resolving it quietly, and this pins which way the code resolves it.
+-- Which way the code resolves an overlap. config-spec.lua reports it at boot.
 do
     reset()
     reloadWith({ vehicleBlacklist = { 'police3' }, vehicleWhitelist = { 'police3' } })
@@ -346,9 +334,8 @@ end
 
 -- ── Deference is unconditional ────────────────────────────────────────────
 --
--- There is no setting for it any more. Pinned because the obvious "add a flag
--- back" change would reintroduce a switch whose only effect is to let tSync
--- fight a script that owns the vehicle.
+-- Pinned because the obvious "add a flag back" change reintroduces a switch
+-- whose only effect is letting tSync fight a script that owns the vehicle.
 do
     reset()
     started['tLS'] = 'started'

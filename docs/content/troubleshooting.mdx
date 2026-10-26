@@ -6,17 +6,17 @@ group: "tSync"
 ---
 
 Start with `tsync_diag` in the client console (F8). The `last pass re-phased N
-vehicle(s)` line splits every problem below into two halves: **N is zero**
-means the vehicles are failing a selection rule, **N is not zero** means the
-reset is running and something else is wrong.
+vehicle(s)` line splits every problem below in two: **N is zero** means the
+vehicles are failing a selection rule, **N is not zero** means the reset is
+running and something else is wrong.
 
 ## Nothing syncs, and the count is zero
 
 The vehicles are failing one of the four rules. Walk them in this order.
 
 **Are the lights actually on?** tSync never switches anything on. A vehicle with
-its light bar dark is not a candidate, and this is the answer more often than
-the other three combined.
+its light bar dark is not a candidate, and this is the answer more often than the
+other three combined.
 
 **Is the fleet class 18?** Check `classes` in the diag output against your
 vehicles. A surprising number of emergency vehicle mods ship as class 0 (Compact)
@@ -32,37 +32,34 @@ is skipping vehicles that resource knows about. That is correct behaviour — se
 
 ## Nothing syncs, and the count is not zero
 
-tSync is re-phasing vehicles and they are still out of step. That means the
-reset is not reaching the lights, which points at the lighting script rather
-than at tSync.
+tSync is re-phasing vehicles and they are still out of step, so the reset is not
+reaching the lights. That points at the lighting script, not at tSync.
 
 **A script that draws its own lights cannot be synced this way.** There is no
-engine timer behind rendered LEDs to restart. tSync is for vehicles GTA is
-lighting; if yours are drawn by a script, that script owns their timing and
-needs its own sync feature.
+engine timer behind rendered LEDs to restart. If yours are drawn by a script,
+that script owns their timing and needs its own sync feature.
 
 **Two sync systems fighting.** ULC has its own park sync. Running both is
-harmless but pointless — they will re-phase on different schedules and the
-lights will appear to settle twice. Turn ULC's off, or stop tSync.
+harmless but pointless — they re-phase on different schedules and the lights
+appear to settle twice. Turn ULC's off, or stop tSync.
 
 ## The lights blink every few seconds
 
 That is the frame gap, and it should not be visible. If it is, `intervalMs` is
 probably very low — at a few hundred milliseconds the reset happens often enough
-to read as a stutter rather than as nothing.
-
-Raise `intervalMs`. The default of `5000` is not visible on any hardware tested.
+to read as a stutter. Raise it; the default `5000` is not visible on any hardware
+tested.
 
 ## The siren audio clips or restarts
 
-The vehicle is using the siren flag for audio as well as lights, and the reset
-is interrupting it.
+The vehicle is using the siren flag for audio as well as lights, and the reset is
+interrupting it.
 
 If a lighting script owns the vehicle, check the diag line names it — deference
 is automatic, so a vehicle it does not name is one tSync could not detect. If
-nothing claims the vehicle and the clipping is still unacceptable, put that
-spawn code in `Config.vehicleBlacklist`, or raise `intervalMs` so it happens
-less often.
+nothing claims the vehicle and the clipping is still unacceptable, put that spawn
+code in `Config.vehicleBlacklist`, or raise `intervalMs` so it happens less
+often.
 
 ## Errors naming tLib
 
@@ -70,16 +67,16 @@ less often.
 attempt to index a function value
 ```
 
-tLib is older than `v1.0`. A tLib module that does not exist is not `nil` — it
-is a truthy export proxy, so no `if tlib.config` guard catches it and the
-failure surfaces partway down a script instead of as "update tLib". Update tLib.
+tLib is older than `v1.0`. A tLib module that does not exist is not `nil` — it is
+a truthy export proxy, so no `if tlib.config` guard catches it and the failure
+surfaces partway down a script instead of as "update tLib". Update tLib.
 
 ```
 tSync: tLib is required
 ```
 
-tLib is not started, or is started **after** tSync. `ensure tLib` must come
-first in `server.cfg`.
+tLib is not started, or is started **after** tSync. `ensure tLib` must come first
+in `server.cfg`.
 
 ## Configuration errors at boot
 
@@ -96,6 +93,5 @@ It is working for both of you, separately.
 
 The reset re-phases what **your** client draws. Another player's client runs its
 own pass on the same shared clock and reaches the same result for the vehicles
-near them. There is no state to be out of sync, and nothing to check — if a
-second player sees drift, run `tsync_diag` on *their* client and work the
-selection rules above there.
+near them. There is no state to be out of sync — if a second player sees drift,
+run `tsync_diag` on *their* client and work the selection rules above there.

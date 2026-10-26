@@ -5,37 +5,31 @@ displayName: "Tommy's Lights Sync"
 tagline: "Patrol cars that flash together, on whatever non-ELS lighting you already run"
 category: "fivem"
 tags: ["standalone"]
-# NOT "Escrow". tSync's fxmanifest.lua carries no `escrow_ignore` and says why:
-# on a resource that is never escrow-packed the block is not a smaller
-# carve-out, it is a claim about the build that is not true. The tree is
-# readable and MIT-licensed, same shape as tDB and tChirp.
+# NOT "Escrow". The tree is readable and MIT-licensed, same shape as tDB and
+# tChirp.
 badge: "Free"
 updatedAt: "2026-10-25"
 popularity: 10
 resourceName: "tSync"
 docsUrl: "/docs/tSync"
 provider: "tebex"
-# PUBLISHED 2026-10-25 on the owner's instruction, against Tebex package
-# 5347030 "Tommy's Lights Sync" — verified free on the live Headless
-# storefront: base_price 0, total_price 0, category "Free Resources" (2437651).
+# PUBLISHED 2026-10-25 on the owner's instruction, against Tebex package 5347030
+# "Tommy's Lights Sync" — verified free on the live Headless storefront:
+# base_price 0, total_price 0, category "Free Resources" (2437651).
 #
 # `displayName` matches the TEBEX package name rather than reading better in
 # English. "Tommy's Light Sync" is the nicer phrase; "Lights" is what a buyer
-# sees at checkout, and a store page that disagrees with the checkout it links
-# to is the kind of small wrongness that gets reported as a scam. Change both
-# or neither.
+# sees at checkout, and a store page that disagrees with the checkout it links to
+# gets reported as a scam. Change both or neither.
 #
-# Both preconditions are closed:
+# Store art in place 2026-10-25. The hero is a real in-game capture of three
+# liveried units with their bars lit IN STEP, which is the one thing the shot had
+# to show: sync is a relationship between vehicles, so a single car would have
+# been a hero for a different resource.
 #
-#  1. Store art is in place as of 2026-10-25 — this item is closed, kept as
-#     the record. The hero is a real in-game capture of three liveried units
-#     with their bars lit IN STEP, which is the one thing the shot had to show:
-#     sync is a relationship between vehicles, so a single car would have been
-#     a hero for a different resource.
-#  2. Verified in-game 2026-10-25 -- this item is closed, kept as the record.
-#     A pass was watched on a live client: 1,012 frames polled, the siren flag
-#     caught false on exactly one of them, 2 ms past a 5000 ms boundary of the
-#     shared clock. See the note in client/cl_sync.lua.
+# Verified in-game 2026-10-25: a pass watched on a live client, 1,012 frames
+# polled, the siren flag caught false on exactly one of them, 2 ms past a 5000 ms
+# boundary of the shared clock. See the note in client/cl_sync.lua.
 status: "published"
 media:
   - { type: "image", src: "/assets/tSync/thumb.jpg", alt: "Three patrol units with their light bars in step" }
@@ -51,16 +45,15 @@ downloadUrl: "https://github.com/tommy141x/tSync/releases/latest/download/tSync.
 pricing:
   # `amount: 0` with NO `packageId`, which is tDB's pairing. Tebex package 5347030
   # existed and is no longer how anyone gets this: the source went public on
-  # 2026-10-26 and the download above comes straight off the GitHub release, so
-  # routing a free MIT script with no escrow through a cart bought nothing.
+  # 2026-10-26 and the download above comes off the GitHub release, so routing a
+  # free MIT script through a cart bought nothing.
   #
-  # The 19 people who hold 5347030 are unaffected — it stays in
+  # The 19 people holding 5347030 are unaffected — it stays in
   # `HISTORICAL_PACKAGE_NAMES` in tWeb's src/lib/billing/legacy-product-id.ts,
   # which is what resolves a stored id once no listing claims it.
   #
-  # There is no `keymasterAsset` and there must not be one. Nothing here is
-  # escrowed, so nothing is granted, and a Keymaster line would send a buyer
-  # hunting for something that was never granted.
+  # No `keymasterAsset`, and there must not be one: nothing is granted, so the
+  # line would send a buyer hunting for something that never existed.
   - id: "tsync"
     kind: "one-time"
     label: "Free and open source — MIT licensed, full source in the download, nothing escrowed."
@@ -87,13 +80,11 @@ tSync restarts those timers together.
 
 ## No server, and no network traffic
 
-This is the part that makes tSync small.
-
 The reset is **per-observer**: toggling a vehicle's siren flag restarts GTA's light timer for that vehicle on the client that does it, including vehicles that client does not own. So the fix is applied to what you are looking at, and there is no ownership to negotiate — no case where a car cannot be synced because somebody else is driving it.
 
-And the clock is already shared. Every client has `GetNetworkTimeAccurate()`, which the engine keeps synchronised. tSync does not choose its own moment to re-phase; it waits for the next multiple of the configured interval on that clock. Every client reaches that instant together **without being told to**.
+And the clock is already shared. Every client has `GetNetworkTimeAccurate()`, which the engine keeps synchronised. tSync does not choose its own moment to re-phase; it waits for the next multiple of the configured interval on that clock, so every client reaches that instant together **without being told to**.
 
-So there are no net events, no server component to the sync, and no dependence on latency. A player on a 300 ms connection re-phases at the same instant as one on 20 ms, because neither is waiting for a message.
+So there are no net events, no server component to the sync, and no dependence on latency: a player on a 300 ms connection re-phases at the same instant as one on 20 ms, because neither is waiting for a message.
 
 The obvious alternative — reset, then broadcast the reset to nearby clients — is what Ultimate Lighting Controller does. It is the natural design if you have not noticed the clock is already shared, and once you have, the round trip buys nothing except a dependency on ping.
 
@@ -105,7 +96,7 @@ The obvious alternative — reset, then broadcast the reset to nearby clients �
 
 ## Configuration
 
-Five settings, none of them required. Interval, radius, which vehicle classes, and spawn-code blacklist and whitelist. Deferring to another lighting script is automatic and has no setting — there is no state of the world where you would want otherwise. Everything is in `config.lua`, commented in full, and validated at boot — a mistyped key is a line naming the key and the fix, not a setting that silently did nothing.
+Five settings, none of them required: interval, radius, which vehicle classes, and a spawn-code blacklist and whitelist. Deferring to another lighting script is automatic and has no setting. Everything is in `config.lua`, commented in full, and validated at boot — a mistyped key is a line naming the key and the fix, not a setting that silently did nothing.
 
 ## Requirements
 

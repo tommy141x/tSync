@@ -5,39 +5,32 @@ node_modules/
 .tmp/
 
 # Release archives. tChirp 1.0.0 shipped a committed `tChirp.zip` that was a
-# byte-for-byte copy of the four source files beside it, so the moment either
-# changed the repository held two versions of the resource and nothing said which
-# one a server had installed. Build output is produced from a tag, never tracked.
+# byte-for-byte copy of the source files beside it, so the moment either changed
+# the repository held two versions of the resource with nothing to say which one
+# a server had installed. Build output comes from a tag, never from the tree.
 .build/
 *.zip
 
-# The developer's real credentials. Never committed, never packaged.
-# The tracked config.lua holds blanks permanently; tlib.secrets overlays this
-# file onto Config at server start. See tLib/shared/imports/secrets/server.lua.
+# Local overrides, overlaid onto Config at server start by tlib.secrets. Never
+# committed, never packaged. See tLib/shared/imports/secrets/server.lua.
 config.local.lua
 config/config.local.lua
 
-# The workshop: material used to MAKE things, never runtime. `bun run gallery`
-# writes assets/gallery/ here, regenerated on demand. The hand-supplied hero
-# backdrop is the exception — a gameplay screenshot the repo cannot reproduce.
+# Captures: hero images, gallery stills, screen recordings. Large, regenerable
+# and no business in the history. The hand-supplied hero backdrop is the
+# exception — a gameplay screenshot the repo cannot reproduce.
 #
-# `/assets/*` and not `/assets/`: a negation cannot re-include anything under a
-# directory git has excluded, so the exception has to leave `assets/` listable.
+# ⚠️ A DIRECTORY-FORM IGNORE CANNOT BE NEGATED FROM INSIDE. `/assets/` makes git
+# skip the tree without reading it, so no `!` rule below it ever matches. Hence
+# `/assets/*`, which leaves `assets/` listable.
 /assets/*
 !/assets/hero/
 
-# The Cfx/Tebex listing copy, and nothing else under assets/.
-#
-# `/assets/*` above is about captures: hero images, gallery stills and screen
-# recordings, which are large, regenerable and have no business in the history.
-# `assets/cfx/*.txt` is neither -- it is the product claim. Every warranty,
-# compatibility statement and non-affiliation line that goes to a buyer lives in
-# these two files, and until 2026-10-23 they were untracked in five of seven
-# resources: a copy change had no history, no review and no way back.
-#
-# ⚠️ A DIRECTORY-FORM IGNORE CANNOT BE NEGATED FROM INSIDE. `/assets/` (with the
-# trailing slash and no `*`) makes git skip the tree without reading it, so a
-# `!` rule below it never matches -- which is why the rule above is `/assets/*`.
+# The Cfx/Tebex listing copy, and nothing else under assets/. It is not a
+# capture, it is the product claim: every warranty, compatibility statement and
+# non-affiliation line a buyer reads lives in these two files, and until
+# 2026-10-23 they were untracked in five of seven resources — a copy change with
+# no history, no review and no way back.
 !/assets/cfx/
 /assets/cfx/*
 !/assets/cfx/*.txt

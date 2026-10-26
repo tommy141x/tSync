@@ -1,17 +1,8 @@
 /**
  * `bun run prod` — cut the release zip.
  *
- * Until this existed tSync had no release path at all. The only artifact it had
- * ever shipped was the committed `tSync.zip` that .gitignore now names: a
- * hand-made copy of the source files beside it, which the gitignore comment
- * records as having left the repository holding two versions of the resource
- * with nothing to say which one a server had installed. "Releasable" was the
- * one thing the resource could not do.
- *
- * Modelled on tDB's, which is the right comparator: both are MIT, unescrowed,
- * Lua all the way down, and have no NUI bundle to build. There is nothing here
- * to obfuscate and no provenance token to arm, so what is left is the part that
- * actually goes wrong — deciding what ships.
+ * Nothing here to obfuscate and no provenance token to arm, so what is left is
+ * the part that actually goes wrong: deciding what ships.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -32,32 +23,23 @@ const ROOT = resolve(join(import.meta.dir, ".."));
 // and it already has it: `.build/`.
 const DIST = join(ROOT, ".build", "dist");
 
-// An allowlist, not a list of things to leave out. A denylist ships anything
-// nobody thought to name; naming what ships means a new file is ABSENT from the
-// release until someone adds it here, and both directions are checked below, so
-// an unlisted runtime file fails the build loudly instead of shipping broken.
+// An allowlist. A denylist ships anything nobody thought to name; naming what
+// ships means a new file is ABSENT until someone adds it here, and both
+// directions are checked below, so an unlisted runtime file fails the build
+// loudly instead of shipping broken.
 //
-// Listed file by file rather than as `client`, `server`, `shared`: those three
-// directories hold exactly the manifest's scripts today, so a tree-level entry
-// would be shorter and identical — right up to the first helper, fixture or
-// note filed next to them, which would then ship silently. tDB and tDetector
-// both name files; tAFK's comment records what the other choice cost it.
+// File by file rather than as `client`, `server`, `shared`: those directories
+// hold exactly the manifest's scripts today, so a tree-level entry would be
+// identical — right up to the first helper, fixture or note filed beside them,
+// which would then ship silently. tAFK's comment records what that cost it.
 //
-// Deliberately absent: `scripts/` (the gates and the release packer itself —
-// a release already has what they produce), `docs/` (published to
-// timmygstudios.com by .gitea/workflows/docs.yml, not to a server owner),
-// `node_modules/`, `.build/`, and the repo's own tooling — package.json,
-// bun.lock, biome.json, .githooks, .gitea.
-//
-// `config.local.lua` cannot appear here and must never be staged: it is the
-// developer's real credentials, gitignored, and overlaid onto Config at server
-// start by tlib.secrets. The tracked `config.lua` ships with its blanks, which
-// is what makes an update safe to unzip over a live install — createZip's
-// sanitizer re-checks that below.
+// Deliberately absent: `scripts/` (a release already has what the gates
+// produce), `docs/` (published to timmygstudios.com by .gitea/workflows/docs.yml,
+// not to a server owner), `node_modules/`, `.build/`, and the repo's own tooling
+// — package.json, bun.lock, biome.json, .githooks, .gitea.
 const INCLUDE = [
   "fxmanifest.lua",
-  // The install and configuration instructions a zip is the only copy of. The
-  // full docs are on the site; a server owner who downloaded a zip has this.
+  // The full docs are on the site; a server owner who downloaded a zip has this.
   "README.md",
   "config.lua",
   "shared/config-spec.lua",
@@ -65,28 +47,22 @@ const INCLUDE = [
   "server/sv_version.lua",
 ];
 
-// Both directions. `stageFiles` throws on an included path that has stopped
-// existing — a rename or a move; `assertManifestStaged` throws on a path
-// fxmanifest.lua declares that nobody added to INCLUDE — a release that builds
-// clean and then fails at load on someone's server, reported to the player
-// rather than to whoever cut the release. Neither check can see the other's
-// failure, which is why both are here.
+// Both directions, because neither check can see the other's failure.
+// `stageFiles` throws on an included path that has stopped existing — a rename
+// or a move. `assertManifestStaged` throws on a path fxmanifest.lua declares
+// that nobody added to INCLUDE — a release that builds clean and then fails at
+// load on someone's server.
 //
-// ── ⚠️ BOTH NETS WERE WATCHED FAILING, NOT ASSUMED ──────────────────────────
+// ⚠️ Both nets were WATCHED failing, which is what makes the allowlist safe to
+// maintain by hand. No permanent control for it here: the checks are tLib's,
+// shared with eight resources, and tLib's `check:regression` owns their
+// fixtures. Reproduce by redoing either edit:
 //
-// They are the whole reason the allowlist is safe to maintain by hand, so
-// "an unlisted runtime file fails the build loudly" was measured rather than
-// reasoned about. There is no permanent control script for it: the two checks
-// are tLib's, shared with eight other resources, and tLib's own
-// `check:regression` owns their fixtures — a per-resource control here would be
-// a ninth copy of a test of tLib. These are the measurements, reproducible by
-// redoing either edit:
-//
-//   · `client/cl_sync.lua` removed from INCLUDE → exit 1,
-//     "fxmanifest.lua names 1 path(s) the release does not stage:
-//      client/cl_sync.lua". So an unlisted runtime file cannot ship silently.
+//   · `client/cl_sync.lua` removed from INCLUDE → exit 1, "fxmanifest.lua names
+//     1 path(s) the release does not stage". An unlisted runtime file cannot
+//     ship silently.
 //   · a `data.json` planted at the root and added to INCLUDE → exit 1,
-//     R-DATA-FILE, 1 finding. So runtime state cannot reach the archive.
+//     R-DATA-FILE. Runtime state cannot reach the archive.
 assertManifestStaged(readFileSync(join(ROOT, "fxmanifest.lua"), "utf8"), INCLUDE);
 
 stageFiles(ROOT, DIST, INCLUDE);
@@ -105,10 +81,10 @@ step("Merging the licence and notices");
 }
 
 // MIT requires the notice in every copy, and the only thing putting it there is
-// the `"LICENSE"` line in the hand-maintained list above. `assertManifestStaged`
-// cannot cover it: it compares against fxmanifest.lua, which declares no
-// LICENSE and no README because neither is a script. MEASURED: deleting that one
-// line built green and produced a zip of 10 Lua files with no licence in it.
+// the `sources` entry above. `assertManifestStaged` cannot cover it: it compares
+// against fxmanifest.lua, which declares neither LICENSE nor README because
+// neither is a script. MEASURED: dropping that entry built green and produced a
+// zip with no licence in it.
 const licence = join(DIST, "server", "LICENSE.txt");
 if (!existsSync(licence) || !readFileSync(licence, "utf8").includes("MIT License")) {
   console.error("No MIT text in server/LICENSE.txt — MIT needs the notice inside the zip.");
@@ -117,16 +93,15 @@ if (!existsSync(licence) || !readFileSync(licence, "utf8").includes("MIT License
 
 // ── Runtime state must not be in the archive ────────────────────────────────
 //
-// tSync has no persistent state today: it writes no data.json, calls no
-// SaveResourceFile and opens no kvp or jsonstore. MEASURED, not assumed — and
-// that is exactly why this runs. The allowlist above is the thing that keeps it
-// true, and an allowlist is edited by hand. The day tSync gains a store, the
-// first release after it is where a copy of the developer's file would ship,
-// and this is the check that stops it rather than a reviewer remembering.
+// tSync writes no data.json, calls no SaveResourceFile and opens no kvp or
+// jsonstore. The allowlist above is what keeps that true, and an allowlist is
+// edited by hand — the day tSync gains a store, the first release after it is
+// where a copy of the developer's file would ship, and this is what stops it
+// rather than a reviewer remembering.
 //
-// It is free: tLib already owns the rule set and its floors. `minFiles` is 5
-// against a staged tree of 9 — a floor against a collapsed or wrong-directory
-// scan, not a budget, because every rule in it is green on an empty directory.
+// `minFiles` is 5 against a staged tree of 7: a floor against a collapsed or
+// wrong-directory scan, not a budget, because every rule in the set is green on
+// an empty directory.
 step("Checking the staged tree for runtime state");
 const staged = checkStagedTree({ dist: DIST, minFiles: 5 });
 const findings = failing(staged.findings, false);
@@ -137,13 +112,12 @@ if (findings.length > 0) {
 }
 console.log(formatFindings("staged tree", findings, `${summary}, no forbidden runtime state`));
 
-// `expectConfig` is left at its default (true): tSync tracks and ships
-// `config.lua`, so there IS a file for the sanitizer to read. A pass with zero
-// config files found would be the silent-zero failure the default refusal
-// exists to catch.
+// `expectConfig` stays at its default (true): tSync ships `config.lua`, so there
+// IS a file for the sanitizer to read. Zero config files found would be the
+// silent-zero the default refusal exists to catch.
 step("Packaging");
-// One merged `server/LICENSE.txt` instead of up to four legal files at the resource
-// root. The root is what an operator sees when they extract the zip, and none of those
-// documents is something they open. The REPO keeps them separate -- different things
-// edit them at different times -- so the merge happens here, on the staged tree.
+// One merged `server/LICENSE.txt` rather than legal files at the resource root,
+// which is what an operator sees on extracting the zip and is not where any of
+// them belongs. The repo keeps them separate -- different things edit them at
+// different times -- so the merge happens here, on the staged tree.
 createZip(new AdmZip(), DIST, join(ROOT, ".build", "tSync.zip"), "tSync");

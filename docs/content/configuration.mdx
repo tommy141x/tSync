@@ -6,50 +6,48 @@ group: "tSync"
 ---
 
 Everything is in `config.lua`. Edit the file, restart the resource. tSync runs
-with zero edits.
+with zero edits, and your file is never rewritten — a mistyped key is reported at
+boot with the key, the file and the fix.
 
-Nothing is read again while the server runs, and your file is never rewritten.
-A mistyped key is reported at boot with the key, the file and the fix.
+| Key                | Type         | Default  | Bounds        |
+| ------------------ | ------------ | -------- | ------------- |
+| `intervalMs`       | number       | `5000`   | min `250`     |
+| `radius`           | number       | `150.0`  | `1.0`–`500.0` |
+| `vehicleClasses`   | table        | `{ 18 }` | classes 0–22  |
+| `vehicleBlacklist` | spawn codes  | `{}`     | —             |
+| `vehicleWhitelist` | spawn codes  | `{}`     | —             |
 
 ## Config.intervalMs
 
-**number, default `5000`, minimum `250`**
-
 How long two vehicles may drift apart before being pulled back together.
 
-This is a **ceiling on drift, not a refresh rate.** Nothing is redrawn between
-passes — lights run on GTA's own timer the whole time, and this is only how
-often those timers are restarted together.
+A **ceiling on drift, not a refresh rate.** Nothing is redrawn between passes —
+the lights run on GTA's own timer the whole time, and this is only how often
+those timers are restarted together.
 
 Lower is tighter and costs more: each pass walks the vehicles within `radius`.
-Below about a second the reset itself starts to be visible as a stutter in the
-pattern, which is a worse artefact than the drift it is removing.
+Below about a second the reset itself starts to read as a stutter, which is a
+worse artefact than the drift it removes.
 
 There is no maximum. A very large value is not a mistake — it is "sync rarely",
-which is a reasonable choice on a server whose fleet mostly sits parked.
+which is reasonable on a server whose fleet mostly sits parked.
 
 ## Config.radius
 
-**number, default `150.0`, range `1.0`–`500.0`**
+Metres. Vehicles further out are left alone.
 
-Metres. Vehicles further away than this are left alone.
+This is a rendering fix, so the only vehicles that matter are the ones on screen.
+The default is a little past where light bars stop being legible, so a car does
+not visibly snap into step as you drive up to it.
 
-This is a rendering fix, so the only vehicles that matter are the ones on
-screen. The default is a little past where light bars stop being legible, which
-costs a few extra vehicles per pass and means a car does not visibly snap into
-step as you drive up to it.
-
-The `500` ceiling is a guard against a typo'd extra zero, not a tuning opinion:
-past it the vehicles being walked are not rendered at all, so the work is
-certain waste.
+The `500` ceiling guards against a typo'd extra zero, not a tuning opinion: past
+it the vehicles being walked are not rendered at all.
 
 ## Config.vehicleClasses
 
-**table, default `{ 18 }`**
-
-GTA vehicle class numbers. **18 is Emergency** — every police car, ambulance
-and fire truck in the base game, and what almost every emergency vehicle mod
-sets itself to.
+GTA vehicle class numbers. **18 is Emergency** — every police car, ambulance and
+fire truck in the base game, and what almost every emergency vehicle mod sets
+itself to.
 
 ```lua
 Config.vehicleClasses = { 18, 19 }  -- also Military
@@ -60,14 +58,12 @@ reference](https://docs.fivem.net/natives/?_0x29439776AAA00A62).
 
 Write it as a plain list. `Config.vehicleClasses = 18` is the mistake that
 actually happens, and it is rejected at boot rather than silently matching
-nothing. So is a class outside the 0–22 GTA defines, and an empty list.
+nothing. So is a class outside 0–22, and an empty list.
 
-A vehicle still has to have its lights **on** to be touched. tSync never
-switches anything on; it only re-times what is already running.
+A vehicle still has to have its lights **on** to be touched. tSync never switches
+anything on; it only re-times what is already running.
 
 ## Config.vehicleBlacklist
-
-**table of spawn codes, default `{}`**
 
 Never sync these, whatever their class.
 
@@ -75,15 +71,13 @@ Never sync these, whatever their class.
 Config.vehicleBlacklist = { "firetruk", "ambulance" }
 ```
 
-Spawn codes are the strings you would use with `/car`, and case does not
-matter — they are compared as model hashes, and the hash lowercases.
+Spawn codes are the strings you would use with `/car`, and case does not matter —
+they are compared as model hashes, and the hash lowercases.
 
 Reach for it when one model's lights look wrong re-timed, or when a vehicle is
 driven by a lighting script tSync cannot detect.
 
 ## Config.vehicleWhitelist
-
-**table of spawn codes, default `{}`**
 
 Sync **only** these.
 
@@ -92,39 +86,34 @@ Config.vehicleWhitelist = { "police3", "sheriff2" }
 ```
 
 <Callout type="warning" title="A non-empty whitelist replaces the class check">
-  It does not narrow `vehicleClasses` — it stands in for it. Naming a spawn code
-  is more specific than naming a class, and the usual reason to reach for this
-  list is a vehicle pack that did **not** ship as class 18. If the whitelist
-  were merely an extra filter on top of the classes, that case could not be
-  expressed at all.
+  It does not narrow `vehicleClasses` — it stands in for it. The case it exists
+  for is a vehicle pack that did **not** ship as class 18, which an extra filter
+  on top of the classes could not express at all.
 </Callout>
 
 The blacklist still wins. A model in both lists is never synced, and that is
-reported at boot rather than quietly resolved — an owner who whitelisted a
-vehicle and watches it not sync deserves to be told why.
+reported at boot rather than quietly resolved.
 
 ## Deferring to another lighting script
 
 **Not configurable, deliberately.**
 
 A vehicle driven by a script that renders its own lights — [tLS](https://timmygstudios.com/software/tls)
-— is always skipped. There is no setting, because there is no state of the
-world where you would want otherwise: the reset cannot help such a vehicle
-(there is no engine timer behind rendered LEDs to restart) and it can clip that
-script's siren, which shares the flag. A switch would only have been a way to
-turn on a bug.
+— is always skipped. There is no state of the world where you would want
+otherwise: the reset cannot help such a vehicle, because rendered LEDs have no
+engine timer behind them, and it can clip that script's siren, which shares the
+flag. A switch would only have been a way to turn on a bug.
 
 Both resource names are probed. tLS was renamed from `tELS` on 2026-10-24, so a
 server that has not renamed its folder still gets the deference.
 
 ## What is deliberately not configurable
 
-**Whether to sync your own vehicle.** There is no reason to exclude it, and a
-driver whose own lights are the one set out of step with everyone else's would
-reasonably call that the bug.
+**Whether to sync your own vehicle.** A driver whose own lights are the one set
+out of step with everyone else's would reasonably call that the bug.
 
-**A per-player toggle.** tSync has no visible UI and nothing to opt out of — it
-makes lights agree with each other. If you do not want it, stop the resource.
+**A per-player toggle.** tSync has no visible UI and nothing to opt out of. If
+you do not want it, stop the resource.
 
-**A speed or parked-only gate.** Lights drift while driving in convoy exactly
-as they do parked, and a convoy is where it is most visible.
+**A speed or parked-only gate.** Lights drift in convoy exactly as they do
+parked, and a convoy is where it is most visible.

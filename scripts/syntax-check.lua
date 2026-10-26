@@ -1,8 +1,8 @@
 -- Parses the paths handed to it and reports the ones that do not. Driven by
--- scripts/check-syntax.ts, which decides WHICH files; this file only decides
--- what "parses" means, and `loadfile` is the answer — it compiles the chunk and
--- never runs it, so a file with side effects at file scope (every one of
--- tSync's shared scripts) is safe to point at.
+-- scripts/check-syntax.ts, which decides WHICH files; this only decides what
+-- "parses" means, and `loadfile` is the answer — it compiles the chunk without
+-- running it, so a file with side effects at file scope (every one of tSync's
+-- shared scripts) is safe to point at.
 --
 -- The same shim tUnit uses, kept identical on purpose.
 local paths = { ... }
