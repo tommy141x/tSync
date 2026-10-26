@@ -65,8 +65,7 @@ together without being told to. Hence:
 
 <Callout type="info" title="Why not broadcast it">
   Ultimate Lighting Controller does this same reset and then sends it to nearby
-  clients over the network. That is the natural design if you have not noticed
-  the clock is already shared — and once you have, the round trip buys nothing
+  clients over the network. With a shared clock that round trip buys nothing
   except a dependency on ping.
 </Callout>
 
@@ -81,8 +80,7 @@ in the same frame leaves the engine nothing to observe — it reads the flag onc
 per tick and would see only the final value, so the reset would silently never
 happen.
 
-One frame of darkness at an interval measured in seconds is not visible. A sync
-that quietly does nothing is not detectable at all, which is the worse failure.
+One frame of darkness at an interval measured in seconds is not visible.
 
 ## Interaction with other scripts
 

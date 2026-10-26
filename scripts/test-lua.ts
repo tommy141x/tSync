@@ -1,8 +1,7 @@
 // Runs tSync's Lua suites: bun run test:lua
 //
 // tSync is Lua all the way down — no NUI, no bundle — so `bun test` reaches none
-// of it. Fengari is a Lua VM that runs under bun, so "there is no Lua interpreter
-// on this machine" is true only of native Lua. The same runner tLib, tDetector
+// of it. Fengari is a Lua VM that runs under bun. The same runner tLib, tDetector
 // and tRadar use, kept identical on purpose.
 //
 // Suites are discovered off disk. A hardcoded list is the one way a runner fails
@@ -23,11 +22,9 @@ const root = resolve(import.meta.dir, "..");
 const CONTROL = process.env.LUA_CONTROL === "1";
 
 /**
- * Run one suite through the shim and hand back its exit code.
- *
  * `--package fengari-node-cli` because the `fengari` package ships no executable.
- * Fetched into bunx's cache rather than installed, so running the suites does not
- * touch the package.json or lockfile of a resource that ships to servers.
+ * Fetched into bunx's cache rather than installed, so the suites do not touch the
+ * package.json or lockfile of a resource that ships to servers.
  */
 function runSuite(relativePath: string, quiet = false): number {
   const result = Bun.spawnSync(
@@ -55,10 +52,8 @@ async function discover(dir: string): Promise<string[]> {
 
 // ── Negative control (LUA_CONTROL=1) ────────────────────────────────────────
 //
-// Three cases, all about the HARNESS rather than tSync's behaviour. The suites
-// under scripts/tests already assert both directions of every rule they check,
-// so a dead validator or a dead siren cascade trips one half of a pair. What has
-// no floor under it is whether a failing suite goes RED, and that is not
+// Three cases, all about the HARNESS rather than tSync's behaviour. What has no
+// floor under it is whether a failing suite goes RED, and that is not
 // hypothetical: fengari's CLI prints an unhandled Lua error and still exits ZERO.
 if (CONTROL) {
   const failures: string[] = [];

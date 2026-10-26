@@ -41,7 +41,7 @@ Two facts about FiveM do most of the work.
 
 Put together: no net events, no server component to the sync, and no dependence on latency. A player on a 300 ms connection re-phases at the same instant as one on 20 ms, because neither is waiting for a message.
 
-> **The alternative, and why it is not used.** Reset, then broadcast the reset to nearby clients. That is the natural design if you have not noticed the clock is already shared — and once you have, the round trip buys nothing except a dependency on ping.
+> **The alternative, and why it is not used.** Reset, then broadcast the reset to nearby clients. With a shared clock that round trip buys nothing except a dependency on ping.
 
 ---
 

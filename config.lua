@@ -25,9 +25,8 @@ Config.intervalMs = 5000
 
 -- RANGE, in metres. Vehicles beyond this are left alone.
 --
--- A rendering fix, so only what is on screen matters. The default is a little
--- past where light bars stop being legible, so a car does not snap into step
--- as you drive up to it.
+-- Lower it and cars snap into step as you drive up to them; raise it and each
+-- pass walks more of the vehicle pool.
 
 Config.radius = 150.0
 
@@ -55,9 +54,8 @@ Config.vehicleBlacklist = {}
 --     Config.vehicleWhitelist = { "police3", "sheriff2" }
 --
 -- ⚠️ A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE rather than
--- narrowing it. The case it exists for is a vehicle pack that did not ship as
--- class 18: name it here and it syncs, which an extra filter on top of the
--- classes could not express.
+-- narrowing it. It is for a vehicle pack that did not ship as class 18: name it
+-- here and it syncs.
 --
 -- The blacklist still wins, and a model in both lists is reported at boot
 -- rather than silently resolved.

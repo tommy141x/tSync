@@ -1,8 +1,7 @@
 -- shared/config-spec.lua against the config file it validates.
 --
--- Loads tLib's REAL config module from the sibling directory. A stubbed
--- validator would only assert that this suite agrees with itself; what has to
--- hold is that the file we ship passes the spec tLib actually runs.
+-- Loads tLib's REAL config module from the sibling directory: a stubbed
+-- validator would only assert that this suite agrees with itself.
 
 local ROOT = (arg[0] or ''):match('^(.*)scripts[/\\]tests[/\\]') or './'
 local function path(p) return ROOT .. p end
@@ -40,7 +39,7 @@ end
 -- ── The file we ship passes its own spec ───────────────────────────────────
 --
 -- A spec that rejects the shipped config greets every new install with a wall of
--- red on a file the owner has not touched, which is worse than no validation.
+-- red on a file the owner has not touched.
 
 check(tsyncConfigValid, 'config.lua does not pass shared/config-spec.lua')
 
@@ -68,7 +67,7 @@ end
 -- ── vehicleClasses, which the per-key rules cannot reach ───────────────────
 --
 -- Each of these type-checks and then does nothing, which is why crossChecks
--- exists. Asserted to be REJECTED rather than trusted to be.
+-- exists.
 
 local function rejects(value, what)
     local saved = Config.vehicleClasses

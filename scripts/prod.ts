@@ -1,9 +1,4 @@
-/**
- * `bun run prod` — cut the release zip.
- *
- * Nothing here to obfuscate and no provenance token to arm, so what is left is
- * the part that actually goes wrong: deciding what ships.
- */
+/** `bun run prod` — cut the release zip. */
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import AdmZip from "adm-zip";
@@ -19,19 +14,15 @@ import {
 } from "../../tLib/shared/ts/build/index.ts";
 
 const ROOT = resolve(join(import.meta.dir, ".."));
-// Everything generated lands under one root, so .gitignore needs a single rule —
-// and it already has it: `.build/`.
 const DIST = join(ROOT, ".build", "dist");
 
-// An allowlist. A denylist ships anything nobody thought to name; naming what
-// ships means a new file is ABSENT until someone adds it here, and both
+// An allowlist, so a new file is ABSENT until someone adds it here; both
 // directions are checked below, so an unlisted runtime file fails the build
 // loudly instead of shipping broken.
 //
-// File by file rather than as `client`, `server`, `shared`: those directories
-// hold exactly the manifest's scripts today, so a tree-level entry would be
-// identical — right up to the first helper, fixture or note filed beside them,
-// which would then ship silently. tAFK's comment records what that cost it.
+// File by file rather than as `client`, `server`, `shared`: a tree-level entry is
+// identical today, right up to the first helper, fixture or note filed beside
+// them, which would then ship silently. tAFK's comment records what that cost it.
 //
 // Deliberately absent: `scripts/` (a release already has what the gates
 // produce), `docs/` (published to timmygstudios.com by .gitea/workflows/docs.yml,
@@ -39,7 +30,6 @@ const DIST = join(ROOT, ".build", "dist");
 // — package.json, bun.lock, biome.json, .githooks, .gitea.
 const INCLUDE = [
   "fxmanifest.lua",
-  // The full docs are on the site; a server owner who downloaded a zip has this.
   "README.md",
   "config.lua",
   "shared/config-spec.lua",
@@ -94,10 +84,8 @@ if (!existsSync(licence) || !readFileSync(licence, "utf8").includes("MIT License
 // ── Runtime state must not be in the archive ────────────────────────────────
 //
 // tSync writes no data.json, calls no SaveResourceFile and opens no kvp or
-// jsonstore. The allowlist above is what keeps that true, and an allowlist is
-// edited by hand — the day tSync gains a store, the first release after it is
-// where a copy of the developer's file would ship, and this is what stops it
-// rather than a reviewer remembering.
+// jsonstore. The allowlist above is hand-edited, so the day tSync gains a store
+// this is what stops a copy of the developer's file shipping with it.
 //
 // `minFiles` is 5 against a staged tree of 7: a floor against a collapsed or
 // wrong-directory scan, not a budget, because every rule in the set is green on
@@ -114,7 +102,6 @@ console.log(formatFindings("staged tree", findings, `${summary}, no forbidden ru
 
 step("Packaging");
 // One merged `server/LICENSE.txt` rather than legal files at the resource root,
-// which is what an operator sees on extracting the zip and is not where any of
-// them belongs. The repo keeps them separate -- different things edit them at
-// different times -- so the merge happens here, on the staged tree.
+// which is the first thing an operator sees on extracting the zip. The repo keeps
+// them separate, so the merge happens here, on the staged tree.
 createZip(new AdmZip(), DIST, join(ROOT, ".build", "tSync.zip"), "tSync");

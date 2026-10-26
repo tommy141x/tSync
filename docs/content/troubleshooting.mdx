@@ -15,8 +15,7 @@ running and something else is wrong.
 The vehicles are failing one of the four rules. Walk them in this order.
 
 **Are the lights actually on?** tSync never switches anything on. A vehicle with
-its light bar dark is not a candidate, and this is the answer more often than the
-other three combined.
+its light bar dark is not a candidate, and this is usually the answer.
 
 **Is the fleet class 18?** Check `classes` in the diag output against your
 vehicles. A surprising number of emergency vehicle mods ship as class 0 (Compact)
@@ -47,8 +46,7 @@ appear to settle twice. Turn ULC's off, or stop tSync.
 
 That is the frame gap, and it should not be visible. If it is, `intervalMs` is
 probably very low — at a few hundred milliseconds the reset happens often enough
-to read as a stutter. Raise it; the default `5000` is not visible on any hardware
-tested.
+to read as a stutter. Raise it; the default `5000` is not visible.
 
 ## The siren audio clips or restarts
 
@@ -81,8 +79,7 @@ in `server.cfg`.
 ## Configuration errors at boot
 
 A red block naming a key, the file and the fix. tSync does not start until it is
-resolved, which is deliberate — a resource running on a configuration it has
-already reported as wrong is harder to diagnose than one that refused to start.
+resolved.
 
 Fix the key in `config.lua` and restart. `tsync_diag` re-runs the same checks
 without a restart, so you can confirm a fix before you apply it.

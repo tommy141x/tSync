@@ -2,9 +2,8 @@
  * Parses every Lua file in the resource without executing it: `bun run check:syntax`
  *
  * `bun test` never loads a line of Lua, and the fengari suites only load the
- * files they are oracles for, so nothing else parses the rest. A missing `end` in
- * anything uncovered first surfaces as a resource that REFUSES TO START on a live
- * server — the worst place to find out, and the only place tSync had.
+ * files they are oracles for, so without this a missing `end` anywhere else first
+ * surfaces as a resource that refuses to start on a live server.
  *
  * Suites included: one that does not parse is reported by the test runner as a
  * failure with no message, so parsing it here turns that into a file and a line.
@@ -30,9 +29,9 @@ import { resolve } from "node:path";
 const SELF = "check:syntax";
 
 /**
- * The control's fixture directory, excluded because it holds a file that cannot
- * parse by design — including it would make this gate permanently red, and the
- * obvious fix (deleting the fixture) removes the proof that the gate works.
+ * Excluded because it holds a file that cannot parse by design — including it
+ * would make this gate permanently red, and deleting the fixture removes the
+ * proof that the gate works.
  *
  * scripts/controls/lua/ is NOT excluded: those two fixtures are valid Lua and
  * must parse, or the Lua gate's control measures a syntax error rather than the
@@ -58,8 +57,7 @@ async function check(root: string, quiet = false): Promise<number> {
   if (files.length === 0) {
     console.error(
       `${SELF}: found no Lua files under ${root}. Exit 2, not 0 — a run that read ` +
-        "nothing has proven nothing, and reporting it as a pass is how a moved " +
-        "directory becomes a silent gate."
+        "nothing has proven nothing."
     );
     return 2;
   }
@@ -96,8 +94,8 @@ const rootArg = process.argv.find((a) => a.startsWith("--root="));
 // and either way every run after reports "all files parse".
 //
 // THE DECOY CASE IS NOT OPTIONAL. A harness that has stopped reading exit codes
-// reports every case as failing, which is also what a correct run of the two red
-// cases looks like. So the real resource root must still come back GREEN.
+// reports every case as failing, which is what a correct run of the two red cases
+// looks like too. So the real resource root must still come back GREEN.
 if (process.env.SYNTAX_CONTROL === "1") {
   const fixtures = resolve(ROOT, CONTROL_FIXTURES);
   const failures: string[] = [];

@@ -5,9 +5,8 @@
 -- still exiting zero, so a suite that blew up on its first line would read as a
 -- pass. Every suite exception becomes a non-zero exit here instead.
 --
--- Thin, and the same shim tLib and tDetector use. A suite loads the files it is
--- an oracle for itself, with its own host stubs: which files it needs, and what
--- has to be defined before they load, is part of what the suite asserts.
+-- The same shim tLib and tDetector use. A suite loads the files it is an oracle
+-- for itself, with its own host stubs.
 local ok, err = xpcall(function()
     dofile(assert(arg[1], 'Suite path required'))
 end, debug.traceback)

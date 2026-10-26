@@ -1,20 +1,14 @@
--- Brings nearby emergency lights back into step.
---
--- GTA runs each vehicle's light pattern off a timer started when its siren came
--- on, and nothing in the game ever pulls two of them together. Toggling the
--- siren flag restarts that timer, so toggling several vehicles in one frame
--- starts their patterns together.
+-- Re-phases nearby emergency lights by toggling the siren flag, which restarts
+-- GTA's per-vehicle light pattern timer.
 --
 -- The reset is PER-OBSERVER, which is why there is no server and no net events:
 -- it re-phases what THIS client draws, including vehicles it does not own, and
--- every client already shares GetNetworkTimeAccurate(), so each crosses the same
--- interval boundary at the same instant independently. ULC does the same reset
--- and then broadcasts it (ulc/client/c_park.lua:94-115); with a shared clock that
--- round trip buys nothing.
+-- GetNetworkTimeAccurate() is already shared, so every client crosses the same
+-- interval boundary independently. ULC does the same reset and then broadcasts it
+-- (ulc/client/c_park.lua:94-115); with a shared clock that round trip buys nothing.
 --
--- Only works on vehicles GTA itself is lighting -- vanilla, Luxart, ULC. A script
--- that DRAWS its own LEDs has no engine timer to restart, so it is skipped
--- unconditionally; see lightingResource.
+-- A script that DRAWS its own LEDs has no engine timer to restart, so it is
+-- skipped unconditionally; see lightingResource.
 
 if not tsyncConfigValid then return end
 
@@ -22,7 +16,6 @@ local SIREN_DOWN_FRAMES = 0
 
 local math_floor = math.floor
 
---- A set, not a list: the pass asks this per vehicle per interval.
 local wantedClass = {}
 for _, class in ipairs(Config.vehicleClasses) do wantedClass[class] = true end
 
@@ -36,8 +29,8 @@ for _, name in ipairs(Config.vehicleWhitelist) do
     hasWhitelist = true
 end
 
---- Is this model one tSync should touch? The blacklist always wins, and a
---- non-empty whitelist REPLACES the class check rather than narrowing it.
+--- The blacklist always wins, and a non-empty whitelist REPLACES the class check
+--- rather than narrowing it.
 local function modelWanted(vehicle)
     local model = GetEntityModel(vehicle)
     if blacklisted[model] then return false end
@@ -45,8 +38,7 @@ local function modelWanted(vehicle)
     return wantedClass[GetVehicleClass(vehicle)] == true
 end
 
---- The shared clock, which is why this resource needs no coordination. Not
---- available until the session starts, so GetGameTimer() covers the gap.
+--- Net time is not available until the session starts; GetGameTimer() covers the gap.
 local netTimeStarted = false
 local function getNetTime()
     if not netTimeStarted then netTimeStarted = HasNetworkTimeStarted() end
@@ -54,28 +46,18 @@ local function getNetTime()
     return GetGameTimer()
 end
 
---- Which sibling resource, if any, is driving its own lights right now.
----
---- Unconditional, with no setting: rendered LEDs have no engine timer for the
---- reset to help, and the reset can clip that script's siren audio, which shares
---- the flag.
----
---- Resolved per pass, not cached: tLS can be started or stopped while tSync runs.
---- Both spellings are probed because tLS was renamed from `tELS` on 2026-10-24
---- and a server that has not renamed its folder still answers to the old name.
---- tLS first, so a server running both is read from the current one.
+--- tLS was renamed from `tELS` on 2026-10-24, and a server that has not renamed
+--- its folder still answers to the old name; tLS first, so a server running both
+--- is read from the current one. Not cached: tLS can start or stop while tSync runs.
 local function lightingResource()
     if GetResourceState('tLS') == 'started' then return 'tLS' end
     if GetResourceState('tELS') == 'started' then return 'tELS' end
     return nil
 end
 
---- Does another script own this vehicle's lights?
----
 --- `AreLightsActive` answers nil only for a vehicle it has never heard of; true
---- and false both mean "configured there, leave it alone". pcall because an
---- export on a resource that stopped since the check above throws rather than
---- answering nil, and that would take the whole pass down.
+--- and false both mean "configured there, leave it alone". pcall because an export
+--- on a resource that stopped since the check above throws rather than answering nil.
 local function managedElsewhere(resource, vehicle)
     if not resource then return false end
     local ok, state = pcall(function()
@@ -84,7 +66,6 @@ local function managedElsewhere(resource, vehicle)
     return ok and state ~= nil
 end
 
---- Vehicles this client should re-phase right now.
 local function candidates()
     local here = GetEntityCoords(PlayerPedId())
     local radius = Config.radius
@@ -92,8 +73,7 @@ local function candidates()
     local found = {}
 
     for _, vehicle in ipairs(GetGamePool('CVehicle')) do
-        -- Siren flag first: cheapest of the four, and it rejects almost the
-        -- whole pool on a normal server.
+        -- Siren flag first: it rejects almost the whole pool before the costlier checks.
         if IsVehicleSirenOn(vehicle)
             and modelWanted(vehicle)
             and #(GetEntityCoords(vehicle) - here) <= radius
@@ -106,23 +86,21 @@ local function candidates()
     return found
 end
 
---- Last pass, for tsync_diag. Not used by anything else.
 local lastPassCount, lastPassAt = 0, 0
 
 --- Drop every siren, wait a frame, raise every siren. Don't fuse these loops.
+--- Fusing them restarts each timer at a different instant, which IS the drift.
+--- Writing both values in one frame leaves the engine nothing to observe -- it
+--- reads the flag once per tick and sees only the final value, so the reset
+--- silently never happens. ULC writes both in one frame; the script this replaces
+--- waits, and that is the half worth keeping.
 ---
---- Both halves are load-bearing. Fusing them restarts each timer at a different
---- instant, which IS the drift. Writing both values in one frame leaves the
---- engine nothing to observe -- it reads the flag once per tick and sees only the
---- final value, so the reset silently never happens. ULC writes both in one
---- frame; the script this replaces waits, and that is the half worth keeping.
+--- The one frame of darkness is measured: on a live client 2026-10-25, polling
+--- IsVehicleSirenOn across 1,012 frames caught the flag false on exactly one,
+--- 2 ms past a 5000 ms boundary of the shared clock.
 ---
---- The one frame of darkness is measured, not assumed: on a live client
---- 2026-10-25, polling IsVehicleSirenOn across 1,012 frames caught the flag
---- false on exactly one, 2 ms past a 5000 ms boundary of the shared clock.
----
---- Existence re-checked after the wait: a vehicle can be deleted inside it, and
---- SetVehicleSiren on a stale handle throws.
+--- A vehicle can be deleted inside the wait, and SetVehicleSiren on a stale
+--- handle throws.
 local function syncPass()
     local vehicles = candidates()
     if #vehicles == 0 then
@@ -147,9 +125,8 @@ local function syncPass()
     lastPassCount, lastPassAt = restored, getNetTime()
 end
 
---- Sleeps to the next boundary rather than polling for it: the boundary is a
---- property of the shared clock, so it is the same instant on every client.
---- Waits are approximate, so it is re-derived on each wake rather than trusted.
+--- Sleeps to the next boundary of the shared clock. Waits are approximate, so the
+--- boundary is re-derived on each wake rather than trusted.
 CreateThread(function()
     local lastBoundary = -1
 

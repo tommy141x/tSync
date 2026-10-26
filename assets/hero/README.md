@@ -1,14 +1,12 @@
 # Hero art
 
 `scripts/thumb.ts` composites the store/docs `thumb.jpg` and `banner.jpg` from the
-capture named in its `LAYERS`. It **refuses to build** without that file and names
-it — a plausible-looking wrong hero is worse than no hero.
+capture named in its `LAYERS`. It **refuses to build** without that file, and names
+it.
 
 ## What the shot has to be
 
-**Two patrol cars, light bars lit and in step.** Not an aesthetic preference: sync
-is a relationship _between_ vehicles, so a hero with one car in it is a hero for a
-different resource.
+**Two patrol cars, light bars lit and in step.** One car cannot show the feature.
 
 - Both light bars facing camera, cars side by side or slightly staggered
 - Dusk or night, so the bars read against the sky rather than tarmac
@@ -39,8 +37,7 @@ generated pair, exported in upload order for the Cfx forum post.
 
 `tsync.webp`, 1930×1042 lossless — three liveried units on the shoulder with their
 bars lit in step. The cars sit at roughly x 700–1900 and y 320–780 of the source;
-the empty road on the left is what the banner's copy lands on, which is why that
-frames without a gap.
+the empty road on the left is what the banner's copy lands on.
 
 Captured normally rather than through the in-game bridge: that path returns sheared
 frames on this machine at every resolution tried, with the scene fully stationary.

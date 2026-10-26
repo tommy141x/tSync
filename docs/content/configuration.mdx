@@ -26,8 +26,7 @@ the lights run on GTA's own timer the whole time, and this is only how often
 those timers are restarted together.
 
 Lower is tighter and costs more: each pass walks the vehicles within `radius`.
-Below about a second the reset itself starts to read as a stutter, which is a
-worse artefact than the drift it removes.
+Below about a second the reset itself starts to read as a stutter.
 
 There is no maximum. A very large value is not a mistake — it is "sync rarely",
 which is reasonable on a server whose fleet mostly sits parked.
@@ -36,12 +35,9 @@ which is reasonable on a server whose fleet mostly sits parked.
 
 Metres. Vehicles further out are left alone.
 
-This is a rendering fix, so the only vehicles that matter are the ones on screen.
-The default is a little past where light bars stop being legible, so a car does
-not visibly snap into step as you drive up to it.
-
-The `500` ceiling guards against a typo'd extra zero, not a tuning opinion: past
-it the vehicles being walked are not rendered at all.
+Lower it and cars visibly snap into step as you drive up to them. The `500`
+ceiling guards against a typo'd extra zero: past it the vehicles being walked are
+not rendered at all.
 
 ## Config.vehicleClasses
 
@@ -86,9 +82,8 @@ Config.vehicleWhitelist = { "police3", "sheriff2" }
 ```
 
 <Callout type="warning" title="A non-empty whitelist replaces the class check">
-  It does not narrow `vehicleClasses` — it stands in for it. The case it exists
-  for is a vehicle pack that did **not** ship as class 18, which an extra filter
-  on top of the classes could not express at all.
+  It does not narrow `vehicleClasses` — it stands in for it. It is for a vehicle
+  pack that did **not** ship as class 18.
 </Callout>
 
 The blacklist still wins. A model in both lists is never synced, and that is
@@ -99,10 +94,8 @@ reported at boot rather than quietly resolved.
 **Not configurable, deliberately.**
 
 A vehicle driven by a script that renders its own lights — [tLS](https://timmygstudios.com/software/tls)
-— is always skipped. There is no state of the world where you would want
-otherwise: the reset cannot help such a vehicle, because rendered LEDs have no
-engine timer behind them, and it can clip that script's siren, which shares the
-flag. A switch would only have been a way to turn on a bug.
+— is always skipped. The reset cannot help it: rendered LEDs have no engine timer
+behind them, and the reset can clip that script's siren, which shares the flag.
 
 Both resource names are probed. tLS was renamed from `tELS` on 2026-10-24, so a
 server that has not renamed its folder still gets the deference.

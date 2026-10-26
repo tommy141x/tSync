@@ -29,7 +29,7 @@ tsyncConfigSpec = {
         -- being walked are not rendered at all.
         radius = { type = 'number', default = 150.0, min = 1.0, max = 500.0 },
 
-        -- Contents checked in crossChecks below, where a bad entry can be named.
+        -- Contents checked in crossChecks below.
         vehicleClasses = { type = 'table' },
         vehicleBlacklist = { type = 'table' },
         vehicleWhitelist = { type = 'table' },
@@ -41,19 +41,15 @@ tsyncConfigSpec = {
 local MAX_VEHICLE_CLASS = 22
 
 --- Checks that cannot be expressed as per-key rules.
---- @param cfg table
---- @return table list of problem strings
 local function crossChecks(cfg)
     local problems = {}
     local function bad(message)
         problems[#problems + 1] = ('[%s] %s'):format(RESOURCE, message)
     end
 
-    --- A spawn-code list: a plain array of non-empty strings.
-    ---
-    --- Every way of getting this wrong is silent. A number hashes to a value no
-    --- vehicle has; a map is skipped by ipairs, so half the entries do nothing;
-    --- an empty string hashes to a real key nothing matches.
+    --- Every way of getting a spawn-code list wrong is silent. A number hashes to
+    --- a value no vehicle has; a map is skipped by ipairs, so half the entries do
+    --- nothing; an empty string hashes to a real key nothing matches.
     local function checkSpawnList(value, key)
         if type(value) ~= 'table' then return end
         for index, name in pairs(value) do
@@ -73,9 +69,6 @@ local function crossChecks(cfg)
     checkSpawnList(cfg.vehicleBlacklist, 'vehicleBlacklist')
     checkSpawnList(cfg.vehicleWhitelist, 'vehicleWhitelist')
 
-    -- The code answers "never sync" for a model in both lists, and says so here:
-    -- the alternative is an owner who whitelisted a vehicle watching it not sync
-    -- with no explanation.
     if type(cfg.vehicleBlacklist) == 'table' and type(cfg.vehicleWhitelist) == 'table' then
         local blocked = {}
         for _, name in ipairs(cfg.vehicleBlacklist) do
@@ -111,8 +104,7 @@ local function crossChecks(cfg)
     return problems
 end
 
---- Validate `Config` and print everything. Re-runnable: `tsync_diag` calls it.
---- @return boolean ok  false when the resource must not run
+--- Re-runnable: `tsync_diag` calls it. Returns false when the resource must not run.
 function tsyncConfigOk()
     local ok = tlib.config.check(Config, tsyncConfigSpec)
 
@@ -126,9 +118,7 @@ function tsyncConfigOk()
     return ok and #problems == 0
 end
 
---- The boot verdict, read by client/cl_sync.lua.
----
---- A global rather than the client calling `tsyncConfigOk()` itself: both VMs
---- load this file, so calling it per VM would print the same wall of red twice,
---- and a duplicated error reasonably reads as two errors.
+--- The boot verdict, read by client/cl_sync.lua. A global rather than a per-VM
+--- call: both VMs load this file, so the same wall of red would print twice, and
+--- a duplicated error reasonably reads as two errors.
 tsyncConfigValid = tsyncConfigOk()

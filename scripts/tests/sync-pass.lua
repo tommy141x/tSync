@@ -1,13 +1,12 @@
 -- client/cl_sync.lua — which vehicles get re-phased, and in what order.
 --
 -- THE ORDERING IS THE WHOLE FEATURE: every candidate's siren must be dropped
--- before any is raised again. The code is two plain loops and nothing about its
--- shape says they may not be fused, so that property is pinned here.
+-- before any is raised again, and nothing about the shape of two plain loops
+-- says they may not be fused.
 --
--- The selection rules are pinned for a duller reason: every one of them fails
--- silently. A wrong class, a radius comparison the wrong way round or a
--- backwards deference check produces a resource that does nothing or fights
--- another script, and neither writes a line anywhere.
+-- The selection rules are pinned because every one of them fails silently: a
+-- wrong class, a radius comparison the wrong way round or a backwards deference
+-- check produces a resource that does nothing, and writes no line anywhere.
 
 local ROOT = (arg[0] or ''):match('^(.*)scripts[/\\]tests[/\\]') or './'
 local function path(p) return ROOT .. p end
@@ -49,8 +48,7 @@ function GetVehicleClass(v) return (world[v] or {}).class or 0 end
 function DoesEntityExist(v) return (world[v] or {}).exists ~= false end
 
 -- LOWERCASES, because the real joaat does, and that is the only property of the
--- hash the selection code relies on. A stub preserving case would let a case
--- regression pass here and fail in game.
+-- hash the selection code relies on.
 function GetHashKey(s) return 'hash:' .. tostring(s):lower() end
 function GetEntityModel(v) return GetHashKey((world[v] or {}).model or 'unknown') end
 
@@ -68,8 +66,7 @@ local started = {}
 function GetResourceState(name) return started[name] or 'missing' end
 
 -- Must THROW for a resource that is not running, exactly as FiveM does: that is
--- the case the pcall in managedElsewhere exists for, and a stub answering nil
--- would let a real regression pass.
+-- the case the pcall in managedElsewhere exists for.
 exports = setmetatable({}, {
     __index = function(_, resource)
         if started[resource] ~= 'started' then
@@ -232,8 +229,8 @@ do
     addVehicle(10, { managed = true })
     runUntilWait(2)
     check(#sirenCalls(10) == 0,
-        'the pre-2026-10-24 resource name still defers -- a server that has not '
-            .. 'renamed its folder is the one most likely to be running both')
+        'the pre-2026-10-24 resource name still defers, for a server that has '
+            .. 'not renamed its folder')
 end
 
 -- tLS not running at all: the export throws, and that must skip the check
@@ -270,10 +267,6 @@ do
 end
 
 -- ── Spawn-code lists ──────────────────────────────────────────────────────
---
--- A blacklisted model that still syncs, or a whitelisted one that does not,
--- produces no error anywhere.
-
 do
     reset()
     reloadWith({ vehicleBlacklist = { 'firetruk' } })

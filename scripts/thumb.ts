@@ -5,8 +5,8 @@
  * only tSync's words and its layer placement.
  *
  * The art is a gameplay capture in `assets/hero/`, named in LAYERS below. Missing, this exits 2
- * with the list of what it wanted and writes no placeholder — a plausible-looking wrong hero is
- * worse than no hero. Anything Chromium can decode works: `.png`, `.webp`, `.jpg`.
+ * with the list of what it wanted and writes no placeholder. Anything Chromium can decode
+ * works: `.png`, `.webp`, `.jpg`.
  *
  *   bun run thumb
  *   bun run thumb -- --format banner
@@ -28,7 +28,7 @@ const only = cliArg("format");
 
 /**
  * One layer, and it IS the frame rather than a panel floating in it: tSync has no UI, so the
- * art is a gameplay photograph and the type sits on a scrim over it. Two things make that work:
+ * type sits on a scrim over a gameplay photograph. Two things make that work:
  *
  *   `-webkit-mask-image`   fades the photo out where the type goes, so the headline sits on
  *                          the frame's own black rather than on a bright sky. The prefix is
@@ -44,8 +44,8 @@ const only = cliArg("format");
  */
 const LAYERS: { file: string; thumb: string; banner: string }[] = [
   {
-    // Three liveried units with their bars lit IN STEP. A single car cannot show
-    // this feature: sync is a relationship between vehicles.
+    // Three liveried units with their bars lit IN STEP — a single car cannot show
+    // this feature at all.
     //
     // Source is 1930x1042, cars at roughly x 700-1900 and y 320-780 — so
     // centre-right and mid-height, with empty road on the left for the banner's

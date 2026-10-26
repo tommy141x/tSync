@@ -1,9 +1,6 @@
--- The startup update check: one request, an eight-second timeout, nothing held
--- up if it fails.
---
--- `studios()` is the TIMMYG Studios changelog API. When a product is not
--- published there yet it reports "update check not run" rather than claiming the
--- installed version is current, which is the failure it is specified against.
+-- `studios()` is the TIMMYG Studios changelog API. A product not published there
+-- yet reports "update check not run" rather than claiming the installed version
+-- is current.
 local current = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
 
 tlib.versioncheck({
@@ -11,9 +8,8 @@ tlib.versioncheck({
     current = current,
     author  = 'TIMMYG Studios',
     fetch   = tlib.versioncheck.studios('tSync', current),
-    -- Not `required`: a config.lua with errors stops this row being filled, and
-    -- a banner that refuses to draw is worse than a missing row on exactly the
-    -- install that most needs the version check to still be readable.
+    -- Not `required`: a config.lua with errors leaves this row unfilled, and the
+    -- banner must still draw on exactly that install.
     info    = {
         { key = 'Syncing', event = 'tsync:vcInfo:syncing' },
     },
