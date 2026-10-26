@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 
-// Validates docs/ before the sync workflow publishes it: `bun run docs:check`
+// Validates docs/ before the sync workflow publishes it. The site's own CI only
+// runs after that push has landed, so a bad page would already be live.
 //
-// `.gitea/workflows/docs.yml` is a PUSH: on every commit touching docs/ it
-// replaces `src/content/docs/tSync/` in tWeb wholesale and pushes. The site's own
-// CI runs AFTER that push lands, so a broken page is live before anything
-// notices — and these pages carry cross-page anchor links, which are exactly
-// what a renamed heading silently breaks.
+// Run: bun run docs:check
 //
 // Checks: frontmatter (`title` required, `description`/`order`/`group` warn);
 // URL collisions, where `x.mdx` and `x/index.mdx` collapse to one slug; media

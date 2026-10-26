@@ -5,55 +5,19 @@ displayName: "Tommy's Lights Sync"
 tagline: "Patrol cars that flash together, on whatever non-ELS lighting you already run"
 category: "fivem"
 tags: ["standalone"]
-# NOT "Escrow". The tree is readable and MIT-licensed, same shape as tDB and
-# tChirp.
 badge: "Free"
 updatedAt: "2026-10-25"
 popularity: 10
 resourceName: "tSync"
 docsUrl: "/docs/tSync"
 provider: "tebex"
-# PUBLISHED 2026-10-25 on the owner's instruction, against Tebex package 5347030
-# "Tommy's Lights Sync" — verified free on the live Headless storefront:
-# base_price 0, total_price 0, category "Free Resources" (2437651).
-#
-# `displayName` matches the TEBEX package name rather than reading better in
-# English. "Tommy's Light Sync" is the nicer phrase; "Lights" is what a buyer
-# sees at checkout, and a store page that disagrees with the checkout it links to
-# gets reported as a scam. Change both or neither.
-#
-# Store art in place 2026-10-25. The hero is a real in-game capture of three
-# liveried units with their bars lit IN STEP, which is the one thing the shot had
-# to show: sync is a relationship between vehicles, so a single car would have
-# been a hero for a different resource.
-#
-# Verified in-game 2026-10-25: a pass watched on a live client, 1,012 frames
-# polled, the siren flag caught false on exactly one of them, 2 ms past a 5000 ms
-# boundary of the shared clock. See the note in client/cl_sync.lua.
 status: "published"
 media:
   - { type: "image", src: "/assets/tSync/thumb.jpg", alt: "Three patrol units with their light bars in step" }
   - { type: "image", src: "/assets/tSync/banner.jpg", alt: "tSync" }
-# Explicit rather than left to `coverImage()`, so the store tile is the hero and
-# not whichever entry happens to sort first.
 coverImage: "/assets/tSync/thumb.jpg"
-# `/releases/latest/download/` rather than a pinned `/v1.0.0/` path, so the next
-# release is served without editing this file and this can never point at a
-# superseded build. Same reasoning as tDB's; verified 2026-10-26: 200, redirecting
-# to the asset.
 downloadUrl: "https://github.com/tommy141x/tSync/releases/latest/download/tSync.zip"
 pricing:
-  # `amount: 0` with NO `packageId`, which is tDB's pairing. Tebex package 5347030
-  # existed and is no longer how anyone gets this: the source went public on
-  # 2026-10-26 and the download above comes off the GitHub release, so routing a
-  # free MIT script through a cart bought nothing.
-  #
-  # The 19 people holding 5347030 are unaffected — it stays in
-  # `HISTORICAL_PACKAGE_NAMES` in tWeb's src/lib/billing/legacy-product-id.ts,
-  # which is what resolves a stored id once no listing claims it.
-  #
-  # No `keymasterAsset`, and there must not be one: nothing is granted, so the
-  # line would send a buyer hunting for something that never existed.
   - id: "tsync"
     kind: "one-time"
     label: "Free and open source — MIT licensed, full source in the download, nothing escrowed."

@@ -26,11 +26,8 @@ local math_floor = math.floor
 local wantedClass = {}
 for _, class in ipairs(Config.vehicleClasses) do wantedClass[class] = true end
 
---- The spawn-code lists, hashed ONCE at load -- so a test that mutates Config
---- after load proves nothing.
----
---- Compared as model hashes because GetHashKey lowercases, which is what makes
---- "Police3" and "police3" the same key with no case handling here.
+--- The spawn-code lists, hashed once at load. GetHashKey lowercases, which is
+--- what makes "Police3" and "police3" the same key with no case handling here.
 local blacklisted, whitelisted = {}, {}
 local hasWhitelist = false
 for _, name in ipairs(Config.vehicleBlacklist) do blacklisted[GetHashKey(name)] = true end
@@ -39,12 +36,8 @@ for _, name in ipairs(Config.vehicleWhitelist) do
     hasWhitelist = true
 end
 
---- Is this model one tSync should touch?
----
---- The blacklist wins unconditionally, which is what makes it an escape hatch.
---- A non-empty whitelist then REPLACES the class check rather than narrowing it:
---- the case it exists for is a vehicle pack that did not ship as class 18, which
---- an extra filter could not express.
+--- Is this model one tSync should touch? The blacklist always wins, and a
+--- non-empty whitelist REPLACES the class check rather than narrowing it.
 local function modelWanted(vehicle)
     local model = GetEntityModel(vehicle)
     if blacklisted[model] then return false end
@@ -52,11 +45,8 @@ local function modelWanted(vehicle)
     return wantedClass[GetVehicleClass(vehicle)] == true
 end
 
---- The shared clock, which is why this resource needs no coordination.
----
---- Not available until the session starts, so GetGameTimer() covers the gap --
---- during a join the phase is merely local, which is right for an observer who
---- is alone anyway.
+--- The shared clock, which is why this resource needs no coordination. Not
+--- available until the session starts, so GetGameTimer() covers the gap.
 local netTimeStarted = false
 local function getNetTime()
     if not netTimeStarted then netTimeStarted = HasNetworkTimeStarted() end
@@ -68,7 +58,7 @@ end
 ---
 --- Unconditional, with no setting: rendered LEDs have no engine timer for the
 --- reset to help, and the reset can clip that script's siren audio, which shares
---- the flag. A switch would only ever have turned on a bug.
+--- the flag.
 ---
 --- Resolved per pass, not cached: tLS can be started or stopped while tSync runs.
 --- Both spellings are probed because tLS was renamed from `tELS` on 2026-10-24
@@ -157,12 +147,9 @@ local function syncPass()
     lastPassCount, lastPassAt = restored, getNetTime()
 end
 
---- Sleeps to the next boundary rather than polling for it.
----
---- The boundary is a property of the shared clock, so it is the same instant on
---- every client and the loop can compute how long it has. Waits are approximate,
---- so the boundary is re-derived on each wake rather than trusted: early and the
---- remainder is waited again, late and the pass just runs now.
+--- Sleeps to the next boundary rather than polling for it: the boundary is a
+--- property of the shared clock, so it is the same instant on every client.
+--- Waits are approximate, so it is re-derived on each wake rather than trusted.
 CreateThread(function()
     local lastBoundary = -1
 
@@ -193,8 +180,6 @@ tlib.diag.command({
         ctx.line('every %d ms, within %.0f m, classes %s',
             Config.intervalMs, Config.radius, table.concat(classes, ', '))
 
-        -- WHICH resource is being deferred to, or that none is running. There is
-        -- no flag to read back; deference is unconditional.
         local resource = lightingResource()
         ctx.line('deferring to: %s', resource or 'nothing running')
         ctx.line('spawn codes: %d blacklisted, %d whitelisted%s',

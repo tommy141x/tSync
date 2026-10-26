@@ -272,8 +272,7 @@ end
 -- ── Spawn-code lists ──────────────────────────────────────────────────────
 --
 -- A blacklisted model that still syncs, or a whitelisted one that does not,
--- produces no error anywhere. The whitelist's interaction with vehicleClasses is
--- the part most likely to be "simplified" later, so it is asserted both ways.
+-- produces no error anywhere.
 
 do
     reset()
@@ -310,8 +309,7 @@ do
     reloadWith({ vehicleWhitelist = {} })
 end
 
--- The case the whitelist exists for: a pack that did not ship as class 18. An
--- "extra filter on top of the classes" reading could not express it.
+-- The case the whitelist exists for: a pack that did not ship as class 18.
 do
     reset()
     reloadWith({ vehicleWhitelist = { 'customcruiser' } })
@@ -333,9 +331,6 @@ do
 end
 
 -- ── Deference is unconditional ────────────────────────────────────────────
---
--- Pinned because the obvious "add a flag back" change reintroduces a switch
--- whose only effect is letting tSync fight a script that owns the vehicle.
 do
     reset()
     started['tLS'] = 'started'

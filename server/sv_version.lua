@@ -24,8 +24,6 @@ tlib.versioncheck({
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
 
-    -- The CONFIGURATION, not a count of work: the server never runs a pass. A
-    -- per-client count belongs to `tsync_diag`.
     local classes = {}
     for _, class in ipairs(Config.vehicleClasses or {}) do
         classes[#classes + 1] = tostring(class)

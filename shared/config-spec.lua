@@ -7,8 +7,7 @@
 --
 -- `config.lua` IS THE AUTHORITY. The `default =` fields below are only what
 -- tlib.config writes in for a key the owner DELETED; it never overwrites a value
--- that was set. `scripts/tests/config-spec.lua` asserts the two files agree
--- literal for literal.
+-- that was set.
 --
 -- `vehicleClasses` is a type only; its contents are checked in code below,
 -- because the mistake that happens is not a wrong type -- it is `18` written
@@ -23,14 +22,11 @@ tsyncConfigSpec = {
     resource = RESOURCE,
     keys = {
         -- min 250, not 1: a bound an owner who writes 0 hits as a named error
-        -- instead of a frozen client. No max -- a very large value is "sync
-        -- rarely", a legitimate choice on a server that mostly parks.
+        -- instead of a frozen client.
         intervalMs = { type = 'number', default = 5000, min = 250 },
 
-        -- Metres. min 1.0 because 0 is an off switch dressed as a setting; an
-        -- owner who wants tSync off should stop the resource. max 500 is a guard
-        -- against a typo'd extra zero, not a tuning opinion: past it the
-        -- vehicles being walked are not rendered at all.
+        -- Metres. max 500 catches a typo'd extra zero; past it the vehicles
+        -- being walked are not rendered at all.
         radius = { type = 'number', default = 150.0, min = 1.0, max = 500.0 },
 
         -- Contents checked in crossChecks below, where a bad entry can be named.

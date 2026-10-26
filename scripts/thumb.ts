@@ -27,11 +27,8 @@ const subtitle = cliArg("subtitle") ?? "Emergency light sync for non-ELS vehicle
 const only = cliArg("format");
 
 /**
- * One layer, and it IS the frame rather than a panel floating in it.
- *
- * Every other resource composites UI captures onto this dark ground. tSync has no UI, so the
- * art is a gameplay photograph — and a photograph cannot be a rectangle with a shadow; it has
- * to be the background, with the type on a scrim over it. Two things make that work:
+ * One layer, and it IS the frame rather than a panel floating in it: tSync has no UI, so the
+ * art is a gameplay photograph and the type sits on a scrim over it. Two things make that work:
  *
  *   `-webkit-mask-image`   fades the photo out where the type goes, so the headline sits on
  *                          the frame's own black rather than on a bright sky. The prefix is

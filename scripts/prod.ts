@@ -112,9 +112,6 @@ if (findings.length > 0) {
 }
 console.log(formatFindings("staged tree", findings, `${summary}, no forbidden runtime state`));
 
-// `expectConfig` stays at its default (true): tSync ships `config.lua`, so there
-// IS a file for the sanitizer to read. Zero config files found would be the
-// silent-zero the default refusal exists to catch.
 step("Packaging");
 // One merged `server/LICENSE.txt` rather than legal files at the resource root,
 // which is what an operator sees on extracting the zip and is not where any of
