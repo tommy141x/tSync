@@ -206,7 +206,7 @@ do
     check(raisedYet, 'the sirens are raised again')
 end
 
--- ── Deference ──────────────────────────────────────────────────────────────
+-- ── Deference, which takes no config ───────────────────────────────────────
 
 do
     reset()
@@ -321,15 +321,6 @@ do
     runUntilWait(2)
     check(#sirenCalls(10) == 0, 'in both lists means never synced')
     reloadWith({ vehicleBlacklist = {}, vehicleWhitelist = {} })
-end
-
--- ── Deference is unconditional ────────────────────────────────────────────
-do
-    reset()
-    started['tLS'] = 'started'
-    addVehicle(10, { managed = true })
-    runUntilWait(2)
-    check(#sirenCalls(10) == 0, 'a tLS vehicle is skipped with no config involved')
 end
 
 -- ── The shared clock decides when ──────────────────────────────────────────
