@@ -44,12 +44,15 @@ const only = cliArg("format");
  */
 const LAYERS: { file: string; thumb: string; banner: string }[] = [
   {
-    // Three liveried units with their bars lit IN STEP — a single car cannot show
-    // this feature at all.
+    // Liveried units with their bars lit IN STEP — a single car cannot show this
+    // feature at all.
     //
-    // Source is 1930x1042, cars at roughly x 700-1900 and y 320-780 — so
-    // centre-right and mid-height, with empty road on the left for the banner's
-    // copy to land on.
+    // Source is 3440x1440, units at roughly x 1750-2600 and y 330-640 — so
+    // centre-right and upper-middle, with empty road on the left for the banner's
+    // copy to land on. The composition the offsets below assume is unchanged from
+    // the 1930x1042 shot they were tuned against, but the frame is WIDER, so it
+    // stands shorter at the same `width` — re-render and look rather than trusting
+    // the numbers if the art is replaced again.
     file: "tsync.webp",
     // 2400 wide rather than tChirp's 3200: the source is already nearly
     // frame-width, and scaling that far pushed the cars past the right edge.
