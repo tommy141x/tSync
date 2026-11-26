@@ -2,6 +2,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import AdmZip from "adm-zip";
+// `stampBuildId` is not re-exported by build/index.ts, so it is taken from the
+// module itself rather than reimplemented here.
+import { BUILD_STAMP_KEY, stampBuildId } from "../../tLib/shared/ts/build/core.ts";
 import {
   assertManifestStaged,
   checkStagedTree,
@@ -99,6 +102,13 @@ if (findings.length > 0) {
   process.exit(1);
 }
 console.log(formatFindings("staged tree", findings, `${summary}, no forbidden runtime state`));
+
+// Last before the zip, so the id covers every staged byte. Without it two zips at
+// the same `version` are the same object to a customer and to support -- the state
+// that let one tRadio 7.0.0 ship with sv_cad.lua and one without, undetectably.
+// `ctx.meta` in client/cl_sync.lua already reports it; see Diag.meta.
+step("Stamping the build id");
+console.log(`  ${BUILD_STAMP_KEY} '${stampBuildId(DIST)}'`);
 
 step("Packaging");
 // One merged `server/LICENSE.txt` rather than legal files at the resource root,

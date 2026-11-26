@@ -53,7 +53,7 @@ Config.vehicleBlacklist = {}
 --
 --     Config.vehicleWhitelist = { "police3", "sheriff2" }
 --
--- ⚠️ A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE rather than
+-- A NON-EMPTY WHITELIST REPLACES THE CLASS CHECK ABOVE rather than
 -- narrowing it. It is for a vehicle pack that did not ship as class 18: name it
 -- here and it syncs.
 --

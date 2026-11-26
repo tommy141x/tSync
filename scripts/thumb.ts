@@ -54,10 +54,14 @@ const LAYERS: { file: string; thumb: string; banner: string }[] = [
     // stands shorter at the same `width` — re-render and look rather than trusting
     // the numbers if the art is replaced again.
     file: "tsync.webp",
-    // 2400 wide rather than tChirp's 3200: the source is already nearly
-    // frame-width, and scaling that far pushed the cars past the right edge.
-    // `left` brings them back across, `top` drops them clear of the headline.
-    thumb: `width: 2400px; left: -500px; top: 40px; border-radius: 0;
+    // ⚠️ 5200 WIDE, AND THE BIG NUMBER IS THE POINT. The units are small in this
+    // source — about 27% of its width against the 62% the old 1930x1042 shot
+    // gave — so the 2400 that framed that one leaves them distant AND, at 2.39:1,
+    // stands 1005px tall in a 1080 frame: a 35px strip of bare card along the
+    // bottom. Covering the frame and matching the old apparent size are the same
+    // fix. `left`/`top` then recentre the units, which sit centre-right and
+    // slightly low rather than dead centre.
+    thumb: `width: 5200px; left: -1965px; top: -550px; border-radius: 0;
             filter: brightness(.52) saturate(.95) contrast(1.06);
             -webkit-mask-image: linear-gradient(to bottom, transparent 8%, rgba(0,0,0,.35) 26%, #000 44%);
             mask-image: linear-gradient(to bottom, transparent 8%, rgba(0,0,0,.35) 26%, #000 44%);`,
